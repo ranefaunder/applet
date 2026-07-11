@@ -6,7 +6,7 @@ App Studo is a platform where anyone can create small personal apps without trad
 
 ## Stack
 
-Same architecture as [Cuukbuuk](../cuukbuuk):
+Same architecture as [Cuukbuuk](https://github.com/ranefaunder/cuukbuuk):
 
 - **Runtime:** Bun
 - **UI:** Preact + Signals + htm
@@ -50,13 +50,8 @@ appstudo/
 
 ## Current status
 
-This is the initial scaffold:
-
-- Landing page with product vision
-- App creation prompt (creates draft app in database)
-- Explore gallery (public apps)
-- My apps (user's apps)
+- AI-generated web components (vanilla JS custom elements)
+- App runtime in sandboxed iframe
+- Explore gallery and My apps
 - Auth (register + login code)
-- App runtime view (placeholder)
-
-Next steps: AI app generation, in-platform app runtime, remix, publishing, version history.
+- OpenRouter model config via `.env` (`AI_MODEL`, `AI_FALLBACK_MODEL`)
