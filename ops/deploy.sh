@@ -10,9 +10,9 @@ ssh faunder@faunder.fi << 'EOF'
 
   mkdir -p /home/faunder/apps
 
-  if [ ! -d "/home/faunder/apps/appstudo/.git" ]; then
-    echo "📦 Cloning appstudo repository..."
-    bash -lc "cd /home/faunder/apps && git clone git@github.com:ranefaunder/appstudo.git"
+  if [ ! -d "/home/faunder/apps/appliet/.git" ]; then
+    echo "📦 Cloning appliet repository..."
+    bash -lc "cd /home/faunder/apps && git clone git@github.com:ranefaunder/appliet.git appliet"
   fi
 
   if [ ! -x "/home/faunder/.bun/bin/bun" ]; then
@@ -20,14 +20,14 @@ ssh faunder@faunder.fi << 'EOF'
     bash -lc "curl -fsSL https://bun.sh/install | bash"
   fi
 
-  if [ ! -f "/home/faunder/apps/appstudo/.env" ]; then
-    echo "❌ Missing /home/faunder/apps/appstudo/.env"
+  if [ ! -f "/home/faunder/apps/appliet/.env" ]; then
+    echo "❌ Missing /home/faunder/apps/appliet/.env"
     echo "Create it on the server before deploying (see .env.example)."
     exit 1
   fi
 
-  bash -lc "cd /home/faunder/apps/appstudo && git fetch origin && git checkout main && git reset --hard origin/main && /home/faunder/.bun/bin/bun install"
-  sudo -n install -m 644 /home/faunder/apps/appstudo/ops/appliet.service /etc/systemd/system/appliet.service
+  bash -lc "cd /home/faunder/apps/appliet && git remote set-url origin git@github.com:ranefaunder/appliet.git && git fetch origin && git checkout main && git reset --hard origin/main && /home/faunder/.bun/bin/bun install"
+  sudo -n install -m 644 /home/faunder/apps/appliet/ops/appliet.service /etc/systemd/system/appliet.service
   sudo -n systemctl daemon-reload
   sudo -n systemctl enable --now appliet.service
   sudo -n systemctl restart appliet.service

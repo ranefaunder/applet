@@ -13,6 +13,8 @@ bun dev
 
 Runs at http://localhost:8090
 
+Production: https://appliet.faunder.fi — deploy with `./ops/deploy.sh` (server path `/home/faunder/apps/appliet`).
+
 ## Features
 
 - AI-generated personal apps (Web Components)

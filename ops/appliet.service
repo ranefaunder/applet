@@ -6,10 +6,10 @@ After=network.target
 Type=simple
 User=faunder
 Group=faunder
-WorkingDirectory=/home/faunder/apps/appstudo
+WorkingDirectory=/home/faunder/apps/appliet
 Environment="PATH=/home/faunder/.bun/bin:/usr/local/bin:/usr/bin:/bin"
 Environment="PORT=8090"
-EnvironmentFile=/home/faunder/apps/appstudo/.env
+EnvironmentFile=/home/faunder/apps/appliet/.env
 ExecStart=/home/faunder/.bun/bin/bun start
 Restart=on-failure
 RestartSec=5
