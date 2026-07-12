@@ -45,7 +45,7 @@ export default {
       if (!prompt || prompt.length > 2000) {
         return apiError({
           code: "INVALID_PROMPT",
-          message: t("Describe your applet in a few words.", language),
+          message: t("Describe your app in a few words.", language),
         });
       }
 
@@ -69,7 +69,7 @@ export default {
       if (!config) {
         return apiError({
           code: "GENERATION_FAILED",
-          message: t("Could not create applet. Try again.", language),
+          message: t("Could not create app. Try again.", language),
           status: 500,
         });
       }

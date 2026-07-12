@@ -58,7 +58,7 @@ export default function HomeHero() {
       <div class="content">
         <p class="eyebrow">
           <span class="dot" aria-hidden="true"></span>
-          ${t("Apply your ideas as applets")}
+          ${t("Apply your ideas as apps")}
         </p>
         <h1 ui-heading="xxl" class="title">
           ${t("Build Personal Apps for Your Needs.")}
@@ -72,8 +72,8 @@ export default function HomeHero() {
             id="app-prompt"
             ref=${inputRef}
             rows="2"
-            aria-label=${t("Create an applet for…")}
-            placeholder=${`${t("Create an applet for…")} ${EXAMPLES[placeholderIndex]}.`}
+            aria-label=${t("Create an app for…")}
+            placeholder=${`${t("Create an app for…")} ${EXAMPLES[placeholderIndex]}.`}
             disabled=${loading}
           ></textarea>
           <div class="actions">
@@ -83,7 +83,7 @@ export default function HomeHero() {
           </div>
         </form>
         <p class="hint">
-          ${isLoggedIn() ? t("Every idea deserves its own applet.") : t("Sign in to apply your ideas")}
+          ${isLoggedIn() ? t("Every idea deserves its own app.") : t("Sign in to apply your ideas")}
         </p>
       </div>
 

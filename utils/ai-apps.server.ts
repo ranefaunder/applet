@@ -157,7 +157,7 @@ Quality bar:
 export async function generateAppConfig(prompt: string, language: Language): Promise<AppConfig | null> {
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
 
-  const systemPrompt = `You build small personal applets for Appliet. Each applet is a single, self-contained Web Component (custom element) written in vanilla JavaScript.
+  const systemPrompt = `You build small personal apps for Appliet. Each app is a single, self-contained Web Component (custom element) written in vanilla JavaScript.
 
 Return one JSON object with:
 - title: short app name (max 60 chars), not the raw user prompt
@@ -170,7 +170,7 @@ ${designGuidelines(langName)}`;
 
   const generated = await requestJsonFromAi({
     systemPrompt,
-    userPrompt: `Create an applet for: ${prompt}`,
+    userPrompt: `Create an app for: ${prompt}`,
     schema: aiAppSchema,
   });
 
@@ -201,7 +201,7 @@ export async function editAppConfig(opts: {
   const { current, history, instruction, language } = opts;
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
 
-  const systemPrompt = `You are iterating on an existing Appliet applet. The applet is a single self-contained Web Component (custom element) written in vanilla JavaScript.
+  const systemPrompt = `You are iterating on an existing Appliet app. The app is a single self-contained Web Component (custom element) written in vanilla JavaScript.
 
 You will receive the current full source code and a conversation of change requests. Apply the latest request and return the COMPLETE updated source code (never a diff, never partial code).
 

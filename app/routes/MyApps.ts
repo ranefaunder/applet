@@ -23,8 +23,8 @@ export default function MyApps(_props: RoutePropsForPath<typeof MyAppsPath>) {
     <div data-scope="MyApps" ui-container="md" ui-margin="top-2xl">
       <header class="page-header">
         <p class="eyebrow">${t("Create")}</p>
-        <h1 ui-heading="xl">${t("My applets")}</h1>
-        <p class="subtitle">${t("Every idea deserves its own applet.")}</p>
+        <h1 ui-heading="xl">${t("My apps")}</h1>
+        <p class="subtitle">${t("Every idea deserves its own app.")}</p>
       </header>
 
       ${!isLoggedIn()
@@ -40,8 +40,8 @@ export default function MyApps(_props: RoutePropsForPath<typeof MyAppsPath>) {
           ? html`
             <div class="empty">
               <span class="empty-icon" aria-hidden="true">✨</span>
-              <p ui-heading="sm">${t("No applets yet")}</p>
-              <p>${t("Describe your idea and see your first applet in minutes.")}</p>
+              <p ui-heading="sm">${t("No apps yet")}</p>
+              <p>${t("Describe your idea and see your first app in minutes.")}</p>
               <a href="/${lang}/" ui-button="primary">${t("Apply It")}</a>
             </div>`
           : html`

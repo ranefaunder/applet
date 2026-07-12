@@ -47,7 +47,7 @@ export async function ensureAppReady(slug: string): Promise<boolean> {
 
     const result = await apiFetch<{ app: AppDetail }>(`/api/${lang}/app/get?slug=${encodeURIComponent(slug)}`);
     if (!result.success) {
-      appError.value = result.error.message ?? "Applet not found";
+      appError.value = result.error.message ?? "App not found";
       return false;
     }
     currentApp.value = result.data.app;

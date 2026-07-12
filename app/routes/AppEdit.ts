@@ -40,24 +40,24 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
   const view = html`
     <div data-scope="AppEdit">
       <header class="topbar">
-        <a class="back" href=${`/${lang}/apps`} aria-label=${t("My applets")}>
-          <span aria-hidden="true">‹</span> ${t("My applets")}
+        <a class="back" href=${`/${lang}/apps`} aria-label=${t("My apps")}>
+          <span aria-hidden="true">‹</span> ${t("My apps")}
         </a>
         <div class="title" title=${app?.title ?? ""}>${app?.title ?? t("Editor")}</div>
         <a class="open" href=${appPageUrl(lang, slug)} target="_blank" rel="noopener">
-          ${t("Open applet")}
+          ${t("Open app")}
         </a>
       </header>
 
       ${loading && !app
         ? html`<div class="state"><span class="spinner" aria-hidden="true"></span><p>${t("Loading…")}</p></div>`
         : !app
-          ? html`<div class="state"><p>${editError.value ?? t("Applet not found")}</p></div>`
+          ? html`<div class="state"><p>${editError.value ?? t("App not found")}</p></div>`
           : !app.canEdit
             ? html`
               <div class="state">
-                <p ui-heading="sm">${t("You can only edit your own applets.")}</p>
-                <a href=${appPageUrl(lang, slug)} ui-button="primary">${t("Open applet")}</a>
+                <p ui-heading="sm">${t("You can only edit your own apps.")}</p>
+                <a href=${appPageUrl(lang, slug)} ui-button="primary">${t("Open app")}</a>
               </div>`
             : html`<${EditWorkspace} lang=${lang} slug=${slug} />`}
     </div>
@@ -81,7 +81,7 @@ function EditWorkspace({ lang, slug }: { lang: string; slug: string }) {
         <iframe
           class="preview-frame"
           src=${previewUrl}
-          title=${t("Applet preview")}
+          title=${t("App preview")}
         ></iframe>
       </section>
 
@@ -169,7 +169,7 @@ function ChatPanel({ slug }: { slug: string }) {
             <div class="chat-empty">
               <span class="chat-empty-icon" aria-hidden="true">💬</span>
               <p ui-heading="sm">${t("Describe a change")}</p>
-              <p>${t("Ask the AI to tweak your applet — colors, features, wording, anything.")}</p>
+              <p>${t("Ask the AI to tweak your app — colors, features, wording, anything.")}</p>
             </div>`
           : displayMessages.map(
               (m) => html`
@@ -181,7 +181,7 @@ function ChatPanel({ slug }: { slug: string }) {
                 </div>`,
             )}
         ${sending
-          ? html`<div class="msg assistant"><div class="bubble typing">${t("AI is updating your applet…")}</div></div>`
+          ? html`<div class="msg assistant"><div class="bubble typing">${t("AI is updating your app…")}</div></div>`
           : ""}
       </div>
 

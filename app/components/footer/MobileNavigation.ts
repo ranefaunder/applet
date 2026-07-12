@@ -13,7 +13,7 @@ export default function MobileNavigation() {
         <a class="item" href=${`/${lang}/`} aria-label=${t("Create")}>
           <i ui-icon="magic-wand xl"></i>
         </a>
-        <a class="item" href=${`/${lang}/apps`} aria-label=${t("My applets")}>
+        <a class="item" href=${`/${lang}/apps`} aria-label=${t("My apps")}>
           <i ui-icon="bookmarks xl"></i>
         </a>
         <a class="item" href=${`/${lang}/settings`} aria-label=${t("Settings")}>

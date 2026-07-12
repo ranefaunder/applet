@@ -21,19 +21,19 @@ type AppAccess =
   | { kind: "error"; status: number };
 
 const BUILDING_COPY: Record<Language, { building: string; buildingHint: string }> = {
-  en: { building: "Applying your idea…", buildingHint: "AI is building your applet." },
-  fi: { building: "Toteutetaan ideaasi…", buildingHint: "Tekoäly rakentaa appletiasi." },
-  sv: { building: "Tillämpar din idé…", buildingHint: "AI bygger din applet." },
-  zh: { building: "Applying your idea…", buildingHint: "AI is building your applet." },
-  es: { building: "Aplicando tu idea…", buildingHint: "La IA está creando tu applet." },
-  ja: { building: "Applying your idea…", buildingHint: "AI is building your applet." },
-  de: { building: "Idee wird umgesetzt…", buildingHint: "KI erstellt deine Applet." },
-  fr: { building: "Application de votre idée…", buildingHint: "L'IA construit votre applet." },
-  hi: { building: "Applying your idea…", buildingHint: "AI is building your applet." },
-  ko: { building: "Applying your idea…", buildingHint: "AI is building your applet." },
-  it: { building: "Applicazione dell'idea…", buildingHint: "L'IA sta costruendo l'applet." },
-  pt: { building: "A aplicar a sua ideia…", buildingHint: "A IA está a construir o applet." },
-  nl: { building: "Idee wordt toegepast…", buildingHint: "AI bouwt je applet." },
+  en: { building: "Applying your idea…", buildingHint: "AI is building your app." },
+  fi: { building: "Toteutetaan ideaasi…", buildingHint: "Tekoäly rakentaa appiasi." },
+  sv: { building: "Tillämpar din idé…", buildingHint: "AI bygger din app." },
+  zh: { building: "Applying your idea…", buildingHint: "AI is building your app." },
+  es: { building: "Aplicando tu idea…", buildingHint: "La IA está creando tu app." },
+  ja: { building: "Applying your idea…", buildingHint: "AI is building your app." },
+  de: { building: "Idee wird umgesetzt…", buildingHint: "KI erstellt deine App." },
+  fr: { building: "Application de votre idée…", buildingHint: "L'IA construit votre app." },
+  hi: { building: "Applying your idea…", buildingHint: "AI is building your app." },
+  ko: { building: "Applying your idea…", buildingHint: "AI is building your app." },
+  it: { building: "Applicazione dell'idea…", buildingHint: "L'IA sta costruendo l'app." },
+  pt: { building: "A aplicar a sua ideia…", buildingHint: "A IA está a construir a app." },
+  nl: { building: "Idee wordt toegepast…", buildingHint: "AI bouwt je app." },
 };
 
 function buildingCopy(lang: Language) {

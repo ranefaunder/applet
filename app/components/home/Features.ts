@@ -10,7 +10,7 @@ const FEATURES = [
   {
     icon: "🔒",
     title: "Truly yours",
-    body: "Your applets store data right in your browser. No accounts to wire up, no servers to manage.",
+    body: "Your apps store data right in your browser. No accounts to wire up, no servers to manage.",
   },
   {
     icon: "✨",

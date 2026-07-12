@@ -28,7 +28,7 @@ export function apiErrorFromAi(err: unknown, language: Language): Response | nul
     default:
       return apiError({
         code: "GENERATION_FAILED",
-        message: t("Could not create applet. Try again.", language),
+        message: t("Could not create app. Try again.", language),
         status: 500,
       });
   }

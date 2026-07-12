@@ -9,7 +9,7 @@ export function createWelcomeEmail(language: Language): { subject: string; text:
     subject: t("Welcome to Appliet!", language),
     text: `${t("Hello,", language)}
 
-${t("Thank you for joining Appliet. Describe what you need and Appliet applies it — your first applet in minutes.", language)}
+${t("Thank you for joining Appliet. Describe what you need and Appliet applies it — your first app in minutes.", language)}
 
 ${t("Open Appliet:\n$url", { url: siteUrl }, language)}
 

@@ -26,7 +26,7 @@ export default function Header() {
       <nav class="navigation">
         <a href="/${lang}/" ui-button="inline">${t("Create")}</a>
         ${isLoggedIn()
-          ? html`<a href="/${lang}/apps" ui-button="inline">${t("My applets")}</a>`
+          ? html`<a href="/${lang}/apps" ui-button="inline">${t("My apps")}</a>`
           : ""}
       </nav>
       <div class="user-actions">

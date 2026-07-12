@@ -8,11 +8,11 @@ const STEPS = [
   },
   {
     title: "Apply it",
-    body: "Appliet applies your idea into a working applet you can use right away.",
+    body: "Appliet applies your idea into a working app you can use right away.",
   },
   {
     title: "Edit anytime",
-    body: "Improve your applet with prompts whenever you want.",
+    body: "Improve your app with prompts whenever you want.",
   },
 ];
 
@@ -20,7 +20,7 @@ export default function HowItWorks() {
   const view = html`
     <section data-scope="HowItWorks">
       <div class="head">
-        <h2 ui-heading="lg">${t("Make every idea an applet")}</h2>
+        <h2 ui-heading="lg">${t("Make every idea an app")}</h2>
         <p class="lead">${t("Describe it, apply it — right where you work.")}</p>
       </div>
       <ol class="steps">

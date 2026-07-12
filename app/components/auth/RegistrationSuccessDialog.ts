@@ -22,7 +22,7 @@ export default function RegistrationSuccessDialog() {
       <header>
         <h2>${t("Welcome to Appliet!")}</h2>
       </header>
-      <p>${t("Thank you for joining Appliet. Describe what you need and Appliet applies it — your first applet in minutes.")}</p>
+      <p>${t("Thank you for joining Appliet. Describe what you need and Appliet applies it — your first app in minutes.")}</p>
       <footer>
         <button
           type="button"

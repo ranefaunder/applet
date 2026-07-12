@@ -1,8 +1,8 @@
 # Appliet
 
-**Apply it.** Describe what you need — Appliet applies it into a working applet in minutes.
+**Apply it.** Build personal apps for your needs — in minutes, no code required.
 
-Appliet is a platform where anyone can apply their ideas as small personal applets. Describe what you need, use it immediately, and edit it anytime.
+Appliet is a platform where anyone can apply their ideas as small personal apps. Describe what you need, use it immediately, and edit it anytime.
 
 ## Development
 
@@ -15,8 +15,8 @@ Runs at http://localhost:8090
 
 ## Features
 
-- AI-generated personal applets (Web Components)
+- AI-generated personal apps (Web Components)
 - Local-first data storage in the browser
 - Edit mode with chat and code editor
-- My applets
+- My apps
 - Multi-language support

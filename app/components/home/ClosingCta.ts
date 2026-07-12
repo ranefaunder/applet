@@ -25,7 +25,7 @@ export default function ClosingCta() {
             ${t("Apply It")}
           </a>
           <a href="/${lang}/apps" ui-button="secondary">
-            ${t("My applets")}
+            ${t("My apps")}
           </a>
         </div>
       </div>

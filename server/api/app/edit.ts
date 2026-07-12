@@ -66,7 +66,7 @@ export default {
       if (!result) {
         return apiError({
           code: "GENERATION_FAILED",
-          message: t("Could not update applet. Try again.", language),
+          message: t("Could not update app. Try again.", language),
           status: 500,
         });
       }
