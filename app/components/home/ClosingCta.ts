@@ -18,14 +18,14 @@ export default function ClosingCta() {
         <span class="badge" aria-hidden="true">
           <span class="faunder-logo-font">A</span>
         </span>
-        <h2 ui-heading="xxl" class="title">${t("What will you build?")}</h2>
-        <p class="subtitle">${t("Describe your idea and see it come to life in minutes.")}</p>
+        <h2 ui-heading="xxl" class="title">${t("What will you apply?")}</h2>
+        <p class="subtitle">${t("Describe your idea and watch Appliet apply it in minutes.")}</p>
         <div class="actions">
           <a href="/${lang}/" ui-button="primary" onClick=${focusPrompt}>
-            ${t("Start building")}
+            ${t("Apply It")}
           </a>
-          <a href="/${lang}/explore" ui-button="secondary">
-            ${t("Explore apps")}
+          <a href="/${lang}/apps" ui-button="secondary">
+            ${t("My applets")}
           </a>
         </div>
       </div>

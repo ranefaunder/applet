@@ -13,10 +13,9 @@ export function initAppStore(): void {
   }
 }
 
-export async function loadApps(scope: "public" | "mine" = "public"): Promise<void> {
+export async function loadApps(): Promise<void> {
   const lang = getLang(window.location.pathname) ?? "en";
-  const query = scope === "mine" ? "?scope=mine" : "";
-  const result = await apiFetch<{ apps: AppSummary[] }>(`/api/${lang}/app/list${query}`);
+  const result = await apiFetch<{ apps: AppSummary[] }>(`/api/${lang}/app/list`);
   if (result.success) {
     apps.value = result.data.apps;
   }

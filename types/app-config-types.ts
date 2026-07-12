@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 /**
- * App Studo -sovellus on kokonainen Web Component (custom element).
+ * Appliet-applet on kokonainen Web Component (custom element).
  * Tekoäly tuottaa `code`-kentässä täyden JS:n, joka rekisteröi elementin
  * `customElements.define(tagName, ...)` -kutsulla. Komponentti hoitaa oman
  * tilansa ja tallennuksensa itse (localStorage / IndexedDB).

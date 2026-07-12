@@ -5,12 +5,12 @@ import { socialLinks } from "/app/stores/configStore";
 export default function Footer() {
   const view = html`
     <footer data-scope="Footer" ui-container="lg" ui-margin="top-4xl">
-      <p class="tagline">${t("Every idea deserves its own app.")}</p>
+      <p class="tagline">${t("Every idea deserves its own applet.")}</p>
       <div class="links">
         <a href=${socialLinks.twitter} target="_blank" rel="noopener noreferrer">X</a>
         <a href=${socialLinks.bluesky} target="_blank" rel="noopener noreferrer">Bluesky</a>
       </div>
-      <p class="copyright">© ${new Date().getFullYear()} App Studo</p>
+      <p class="copyright">© ${new Date().getFullYear()} Appliet</p>
     </footer>
   `;
 

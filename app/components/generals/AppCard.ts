@@ -50,15 +50,6 @@ export default function AppCard({ app }: Props) {
         <div class="content">
           <h3 class="title">${app.title}</h3>
           <p class="description">${app.description}</p>
-          ${app.ownerNickname || app.remixCount > 0
-            ? html`
-              <div class="meta">
-                ${app.ownerNickname ? html`<span class="badge">${app.ownerNickname}</span>` : ""}
-                ${app.remixCount > 0
-                  ? html`<span class="badge">${t("$count remixes", { count: app.remixCount })}</span>`
-                  : ""}
-              </div>`
-            : ""}
         </div>
       </a>
       ${canEdit
@@ -148,22 +139,6 @@ export default function AppCard({ app }: Props) {
         -webkit-line-clamp: 2;
         -webkit-box-orient: vertical;
         overflow: hidden;
-      }
-
-      .meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.375rem;
-        margin-top: 0.25rem;
-      }
-
-      .badge {
-        padding: 0.25rem 0.625rem;
-        border-radius: 999px;
-        background: var(--neutral-100);
-        color: var(--neutral-600);
-        font-size: 0.75rem;
-        font-weight: 500;
       }
 
       .actions {

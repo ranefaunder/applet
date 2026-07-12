@@ -17,17 +17,16 @@ export default function Header() {
 
   const view = html`
     <header ui-container="lg" class="app-header" data-scope="Header">
-      <a href=${`/${lang}/`} class="logo" aria-label="App Studo">
+      <a href=${`/${lang}/`} class="logo" aria-label="Appliet">
         <span class="logo-icon" aria-hidden="true">
           <span class="logo-icon-letter faunder-logo-font">A</span>
         </span>
-        <span class="logo-text faunder-logo-font">App Studo</span>
+        <span class="logo-text faunder-logo-font">Appliet</span>
       </a>
       <nav class="navigation">
         <a href="/${lang}/" ui-button="inline">${t("Create")}</a>
-        <a href="/${lang}/explore" ui-button="inline">${t("Explore apps")}</a>
         ${isLoggedIn()
-          ? html`<a href="/${lang}/apps" ui-button="inline">${t("My apps")}</a>`
+          ? html`<a href="/${lang}/apps" ui-button="inline">${t("My applets")}</a>`
           : ""}
       </nav>
       <div class="user-actions">
@@ -51,14 +50,14 @@ export default function Header() {
 
         ${isLoggedIn()
           ? html`
-            <a href=${`/${lang}/settings`} ui-button="inline sm">
+            <a href=${`/${lang}/settings`} ui-button="inline sm" class="settings-link">
               ${t("Settings")}
             </a>`
           : html`
-            <button type="button" ui-button="inline sm" commandfor="login-dialog" command="show-modal">
+            <button type="button" ui-button="inline sm" class="login-button" commandfor="login-dialog" command="show-modal">
               ${t("Login")}
             </button>
-            <button type="button" ui-button="primary sm" commandfor="register-dialog" command="show-modal">
+            <button type="button" ui-button="primary sm" class="register-button" commandfor="register-dialog" command="show-modal">
               ${t("Register")}
             </button>`}
       </div>
@@ -81,6 +80,13 @@ export default function Header() {
         align-items: center;
         flex-grow: 1;
         gap: 1.5rem;
+      }
+
+      .navigation,
+      .settings-link,
+      .login-button,
+      .register-button {
+        display: none;
       }
 
       .logo {
@@ -135,6 +141,12 @@ export default function Header() {
       @media (min-width: 800px) {
         .navigation {
           display: flex;
+        }
+
+        .settings-link,
+        .login-button,
+        .register-button {
+          display: inline-flex;
         }
 
         .logo-icon {

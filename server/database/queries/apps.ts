@@ -64,21 +64,6 @@ export const dbListPublicApps = (limit = 24): AppSummary[] =>
     .all(limit)
     .map(toSummary);
 
-/** Explore-galleria: valmiit appit (status=ready). Julkaisu rajaa myöhemmin näkyvyyttä. */
-export const dbListExploreApps = (limit = 48): AppSummary[] =>
-  db
-    .query<AppRow, [number]>(`
-      SELECT a.*, u.nickname as owner_nickname,
-        (SELECT COUNT(*) FROM apps r WHERE r.source_app_id = a.id) as remix_count
-      FROM apps a
-      LEFT JOIN users u ON u.id = a.owner_id
-      WHERE json_extract(a.config_json, '$.status') = 'ready'
-      ORDER BY a.updated_at DESC
-      LIMIT ?
-    `)
-    .all(limit)
-    .map(toSummary);
-
 export const dbCreateApp = (data: {
   id: string;
   ownerId: string;

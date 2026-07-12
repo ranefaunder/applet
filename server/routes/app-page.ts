@@ -3,6 +3,7 @@ import { AVAILABLE_LANGUAGES } from "/i18n/languages";
 import type { Language } from "/i18n/languages";
 import { dbGetAppBySlug } from "/server/database/queries/apps";
 import { getAuthenticatedUser } from "/utils/auth.server";
+import { canViewApp } from "/utils/app-access.server";
 import { escapeHtmlAttribute, escapeHtmlTextContent } from "/utils/sanitize.server";
 import { isDraftConfig, parseAppConfig } from "/types/app-config-types";
 
@@ -20,19 +21,19 @@ type AppAccess =
   | { kind: "error"; status: number };
 
 const BUILDING_COPY: Record<Language, { building: string; buildingHint: string }> = {
-  en: { building: "Creating your app…", buildingHint: "AI is building your web component." },
-  fi: { building: "Luodaan sovellusta…", buildingHint: "Tekoäly rakentaa web-komponenttiasi." },
-  sv: { building: "Skapar din app…", buildingHint: "AI bygger din webkomponent." },
-  zh: { building: "Creating your app…", buildingHint: "AI is building your web component." },
-  es: { building: "Creando tu app…", buildingHint: "La IA está creando tu componente web." },
-  ja: { building: "Creating your app…", buildingHint: "AI is building your web component." },
-  de: { building: "App wird erstellt…", buildingHint: "KI erstellt deine Web-Komponente." },
-  fr: { building: "Création de l'app…", buildingHint: "L'IA construit votre composant web." },
-  hi: { building: "Creating your app…", buildingHint: "AI is building your web component." },
-  ko: { building: "Creating your app…", buildingHint: "AI is building your web component." },
-  it: { building: "Creazione app…", buildingHint: "L'IA sta costruendo il componente web." },
-  pt: { building: "A criar a app…", buildingHint: "A IA está a construir o componente web." },
-  nl: { building: "App wordt gemaakt…", buildingHint: "AI bouwt je webcomponent." },
+  en: { building: "Applying your idea…", buildingHint: "AI is building your applet." },
+  fi: { building: "Toteutetaan ideaasi…", buildingHint: "Tekoäly rakentaa appletiasi." },
+  sv: { building: "Tillämpar din idé…", buildingHint: "AI bygger din applet." },
+  zh: { building: "Applying your idea…", buildingHint: "AI is building your applet." },
+  es: { building: "Aplicando tu idea…", buildingHint: "La IA está creando tu applet." },
+  ja: { building: "Applying your idea…", buildingHint: "AI is building your applet." },
+  de: { building: "Idee wird umgesetzt…", buildingHint: "KI erstellt deine Applet." },
+  fr: { building: "Application de votre idée…", buildingHint: "L'IA construit votre applet." },
+  hi: { building: "Applying your idea…", buildingHint: "AI is building your applet." },
+  ko: { building: "Applying your idea…", buildingHint: "AI is building your applet." },
+  it: { building: "Applicazione dell'idea…", buildingHint: "L'IA sta costruendo l'applet." },
+  pt: { building: "A aplicar a sua ideia…", buildingHint: "A IA está a construir o applet." },
+  nl: { building: "Idee wordt toegepast…", buildingHint: "AI bouwt je applet." },
 };
 
 function buildingCopy(lang: Language) {
@@ -50,11 +51,10 @@ function resolveAppAccess(req: AppPageRequest): AppAccess {
   if (!row) return { kind: "error", status: 404 };
 
   const user = getAuthenticatedUser(req);
-  const isOwner = user?.id === row.owner_id;
-  const isPublic = row.visibility === "public";
-  if (!isOwner && !isPublic) return { kind: "error", status: 403 };
+  if (!canViewApp(row, user?.id ?? null)) return { kind: "error", status: 403 };
 
   const config = parseAppConfig(row.config_json);
+  const isOwner = user?.id === row.owner_id;
   if (!config || isDraftConfig(config)) {
     if (!isOwner) return { kind: "error", status: 404 };
     return { kind: "building", lang, slug, title: row.title };
@@ -80,9 +80,7 @@ function getReadyApp(req: { params: { lang?: string; slug?: string }; url: strin
   if (!row) return { error: 404 as const };
 
   const user = getAuthenticatedUser(req as BunRequest);
-  const isOwner = user?.id === row.owner_id;
-  const isPublic = row.visibility === "public";
-  if (!isOwner && !isPublic) return { error: 403 as const };
+  if (!canViewApp(row, user?.id ?? null)) return { error: 403 as const };
 
   const config = parseAppConfig(row.config_json);
   if (!config || isDraftConfig(config)) return { error: 404 as const };

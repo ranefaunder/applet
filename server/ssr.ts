@@ -4,10 +4,11 @@ import type { AuthenticatedUser } from "/types/user-types";
 import type { Language } from "/types/i18n-types";
 import type { AppDetail } from "/types/app-config-types";
 import { getAuthenticatedUser } from "/utils/auth.server";
+import { canViewApp } from "/utils/app-access.server";
 import { getLang } from "/utils/lang";
 import { resolveStaticRootFromUrl } from "/utils/static.server";
 import { translations } from "/i18n/translations";
-import { dbListExploreApps, dbListUserApps, dbGetAppBySlug } from "/server/database/queries/apps";
+import { dbListUserApps, dbGetAppBySlug } from "/server/database/queries/apps";
 import { parseAppConfig } from "/types/app-config-types";
 
 export function createSsrContext(req: BunRequest): SsrContext {
@@ -38,9 +39,7 @@ function getInitialApp(req: BunRequest, user: AuthenticatedUser | null): AppDeta
   const config = parseAppConfig(row.config_json);
   if (!config) return null;
 
-  const isOwner = user?.id === row.owner_id;
-  const isPublic = row.visibility === "public";
-  if (!isOwner && !isPublic) return null;
+  if (!canViewApp(row, user?.id ?? null)) return null;
 
   return {
     id: row.id,
@@ -50,7 +49,7 @@ function getInitialApp(req: BunRequest, user: AuthenticatedUser | null): AppDeta
     visibility: row.visibility,
     ownerId: row.owner_id,
     config,
-    canEdit: isOwner,
+    canEdit: user?.id === row.owner_id,
   };
 }
 
@@ -60,9 +59,6 @@ function getInitialApps(req: BunRequest, initialUser: AuthenticatedUser | null) 
 
   if (segment === "apps" && initialUser) {
     return dbListUserApps(initialUser.id);
-  }
-  if (segment === "explore") {
-    return dbListExploreApps();
   }
   return undefined;
 }

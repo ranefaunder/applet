@@ -62,4 +62,4 @@ const server = Bun.serve({
   },
 });
 
-console.log(`🚀 App Studo running at http://localhost:${server.port}`);
+console.log(`🚀 Appliet running at http://localhost:${server.port}`);

@@ -1,5 +1,6 @@
 import type { BunRequest } from "bun";
 import { getAuthenticatedUser } from "/utils/auth.server";
+import { canViewApp } from "/utils/app-access.server";
 import { apiError, apiSuccess } from "/utils/api.server";
 import { dbGetAppBySlug, dbUpdateApp } from "/server/database/queries/apps";
 import { generateAppConfig } from "/utils/ai-apps.server";
@@ -17,8 +18,7 @@ function buildAppDetail(
   if (!config) return null;
 
   const isOwner = userId === row.owner_id;
-  const isPublic = row.visibility === "public";
-  if (!isOwner && !isPublic) return null;
+  if (!canViewApp(row, userId)) return null;
 
   return {
     id: row.id,
@@ -85,7 +85,7 @@ export default {
     if (!config) {
       return apiError({
         code: "GENERATION_FAILED",
-        message: t("Could not create app. Try again.", language),
+        message: t("Could not create applet. Try again.", language),
         status: 500,
       });
     }

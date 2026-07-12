@@ -1,57 +1,22 @@
-# App Studo
+# Appliet
 
-Build, remix and share apps in minutes.
+**Apply it.** Describe what you need — Appliet applies it into a working applet in minutes.
 
-App Studo is a platform where anyone can create small personal apps without traditional software development. Describe what you need, use the app immediately, edit it later, share it, or remix community apps.
-
-## Stack
-
-Same architecture as [Cuukbuuk](https://github.com/ranefaunder/cuukbuuk):
-
-- **Runtime:** Bun
-- **UI:** Preact + Signals + htm
-- **Routing:** preact-iso (SSR + SPA)
-- **Database:** SQLite (`bun:sqlite`)
-- **Auth:** Email login codes + session cookies
-- **Styling:** Faunder UI
+Appliet is a platform where anyone can apply their ideas as small personal applets. Describe what you need, use it immediately, and edit it anytime.
 
 ## Development
 
 ```bash
-# Install Bun: https://bun.sh
 bun install
-cp .env.example .env
-bun run dev
+bun dev
 ```
 
-Open http://localhost:8090
+Runs at http://localhost:8090
 
-## Scripts
+## Features
 
-| Command | Description |
-|---------|-------------|
-| `bun run dev` | Dev server with hot reload (port 8090) |
-| `bun run start` | Production server |
-| `bun test` | Unit tests |
-| `bun run test:e2e` | Playwright E2E tests |
-
-## Project structure
-
-```
-appstudo/
-├── app/              # Preact client (routes, components, stores)
-├── server/           # Bun server (API, SSR, database)
-├── utils/            # Shared utilities
-├── types/            # TypeScript types
-├── i18n/             # Translations
-├── static/           # CSS, images, fonts
-└── test/             # Unit + E2E tests
-```
-
-## Current status
-
-- AI-generated web components (vanilla JS custom elements)
-- App runtime in sandboxed iframe
-- Explore gallery and My apps
-- Auth (register + login code)
-- OpenRouter model config via `.env` (`AI_MODEL`, `AI_FALLBACK_MODEL`)
+- AI-generated personal applets (Web Components)
+- Local-first data storage in the browser
+- Edit mode with chat and code editor
+- My applets
+- Multi-language support

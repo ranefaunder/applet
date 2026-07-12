@@ -58,13 +58,13 @@ export default function HomeHero() {
       <div class="content">
         <p class="eyebrow">
           <span class="dot" aria-hidden="true"></span>
-          ${t("AI-powered app builder")}
+          ${t("Apply your ideas as applets")}
         </p>
         <h1 ui-heading="xxl" class="title">
-          ${t("Build the app you need.")}
+          ${t("Build Personal Apps for Your Needs.")}
         </h1>
         <p class="subtitle">
-          ${t("Describe what you need and App Studo creates a working app in minutes. Use it yourself, share it with others, or remix apps created by the community.")}
+          ${t("Describe what you need in plain language. Appliet builds your app in minutes — no code required.")}
         </p>
 
         <form class="prompt-form" onSubmit=${handleSubmit}>
@@ -72,21 +72,18 @@ export default function HomeHero() {
             id="app-prompt"
             ref=${inputRef}
             rows="2"
-            aria-label=${t("Create an app for…")}
-            placeholder=${`Create an app for ${EXAMPLES[placeholderIndex]}.`}
+            aria-label=${t("Create an applet for…")}
+            placeholder=${`${t("Create an applet for…")} ${EXAMPLES[placeholderIndex]}.`}
             disabled=${loading}
           ></textarea>
           <div class="actions">
             <button type="submit" ui-button="primary" disabled=${loading}>
-              ${loading ? t("Creating your app…") : t("Start building")}
+              ${loading ? t("Applying your idea…") : t("Apply It")}
             </button>
-            <a href="/${lang}/explore" ui-button="secondary">
-              ${t("Explore apps")}
-            </a>
           </div>
         </form>
         <p class="hint">
-          ${isLoggedIn() ? t("Every idea deserves its own app.") : t("Sign in to create apps")}
+          ${isLoggedIn() ? t("Every idea deserves its own applet.") : t("Sign in to apply your ideas")}
         </p>
       </div>
 

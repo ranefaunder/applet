@@ -1,5 +1,6 @@
 import { html, css } from "/utils/markup";
 import { useRef, useEffect } from "preact/hooks";
+import { t } from "/utils/i18n";
 
 export default function TermsDialog() {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -19,7 +20,7 @@ export default function TermsDialog() {
         <button ui-button="square inline" ui-icon="x" onClick=${() => dialogRef.current?.close()} aria-label="Close"></button>
       </header>
       <div class="terms-body">
-        <p>App Studo is a platform for creating personal apps. By using the service you accept these terms.</p>
+        <p>${t("Appliet is a platform for creating personal applets. By using the service you accept these terms.")}</p>
         <p>Use the service for personal, non-abusive purposes. We may update features as the product evolves.</p>
       </div>
     </dialog>

@@ -3,6 +3,7 @@ import { h } from "preact";
 import { html, css } from "/utils/markup";
 import Header from "./components/header/Header";
 import Footer from "./components/footer/Footer";
+import MobileNavigation from "./components/footer/MobileNavigation";
 import Dialogs from "/app/components/Dialogs";
 
 type LayoutProps = {
@@ -17,6 +18,7 @@ export default function Layout({ children }: LayoutProps) {
         ${children}
       </main>
       <${Footer} />
+      <${MobileNavigation} />
       <${Dialogs} />
     </div>
   `;
@@ -31,6 +33,13 @@ export default function Layout({ children }: LayoutProps) {
 
       .layout-main {
         flex-grow: 1;
+        padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0));
+      }
+
+      @media (min-width: 800px) {
+        .layout-main {
+          padding-bottom: 0;
+        }
       }
     }
   `;

@@ -1,28 +1,28 @@
 import { t } from "/utils/i18n";
 import type { Language } from "/types/i18n-types";
 
-const APPSTUDO_SITE_ORIGIN = "https://appstudo.com";
+const APPLIET_SITE_ORIGIN = "https://appliet.com";
 
 export function createWelcomeEmail(language: Language): { subject: string; text: string } {
-  const siteUrl = `${APPSTUDO_SITE_ORIGIN}/${language}/`;
+  const siteUrl = `${APPLIET_SITE_ORIGIN}/${language}/`;
   return {
-    subject: t("Welcome to App Studo!", language),
+    subject: t("Welcome to Appliet!", language),
     text: `${t("Hello,", language)}
 
-${t("Thank you for joining App Studo. You can start building personal apps in minutes — describe what you need and we take care of the rest.", language)}
+${t("Thank you for joining Appliet. Describe what you need and Appliet applies it — your first applet in minutes.", language)}
 
-${t("Open App Studo:\n$url", { url: siteUrl }, language)}
+${t("Open Appliet:\n$url", { url: siteUrl }, language)}
 
-${t("Best regards\nRane Faunder\nFounder of App Studo", language)}`,
+${t("Best regards\nRane Faunder\nFounder of Appliet", language)}`,
   };
 }
 
 export function createLoginCodeEmail(code: string, language: Language): { subject: string; text: string } {
   return {
-    subject: t("App Studo - Login Code", language),
+    subject: t("Appliet - Login Code", language),
     text: `${t("Hello!", language)}
 
-${t("Use the following code to log in to App Studo:", language)}
+${t("Use the following code to log in to Appliet:", language)}
 
 ${code}
 
@@ -31,7 +31,7 @@ ${t("• Code is valid for 10 minutes", language)}
 ${t("• Code can only be used once", language)}
 ${t("• If you didn't request this code, you can safely ignore this message", language)}
 
-${t("App Studo Team", language)}`,
+${t("Appliet Team", language)}`,
   };
 }
 
@@ -43,7 +43,7 @@ export function createFeedbackNotificationEmail(payload: {
   createdAt: string;
 }): { subject: string; text: string } {
   return {
-    subject: `App Studo feedback #${payload.feedbackId} (${payload.language})`,
+    subject: `Appliet feedback #${payload.feedbackId} (${payload.language})`,
     text: `New feedback (id ${payload.feedbackId})
 
 Message:
@@ -86,7 +86,7 @@ export async function sendEmailSafe(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "App Studo <no-reply@faunder.fi>",
+        from: "Appliet <no-reply@faunder.fi>",
         reply_to: "rane@faunder.fi",
         to: [resendTo],
         subject,

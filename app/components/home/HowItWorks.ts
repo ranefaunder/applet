@@ -4,15 +4,15 @@ import { t } from "/utils/i18n";
 const STEPS = [
   {
     title: "Describe your idea",
-    body: "Tell App Studo what you need — a packing list, budget tracker, or anything else.",
+    body: "Tell Appliet what you need — a packing list, budget tracker, or anything else.",
   },
   {
-    title: "Use it instantly",
-    body: "App Studo generates a working app you can start using right away.",
+    title: "Apply it",
+    body: "Appliet applies your idea into a working applet you can use right away.",
   },
   {
-    title: "Edit, share, remix",
-    body: "Improve your app with prompts, publish it, or remix community apps.",
+    title: "Edit anytime",
+    body: "Improve your applet with prompts whenever you want.",
   },
 ];
 
@@ -20,8 +20,8 @@ export default function HowItWorks() {
   const view = html`
     <section data-scope="HowItWorks">
       <div class="head">
-        <h2 ui-heading="lg">${t("Make every idea an app")}</h2>
-        <p class="lead">${t("Describe it and watch it take shape — right where you work.")}</p>
+        <h2 ui-heading="lg">${t("Make every idea an applet")}</h2>
+        <p class="lead">${t("Describe it, apply it — right where you work.")}</p>
       </div>
       <ol class="steps">
         ${STEPS.map((step, index) => html`

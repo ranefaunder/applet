@@ -16,7 +16,6 @@ import { initAppStore } from "./stores/appStore";
 import { initAppEditStore } from "./stores/appEditStore";
 import DevStores from "./components/headless/DevStores";
 import Home, { HomePath } from "./routes/Home";
-import Explore, { ExplorePath } from "./routes/Explore";
 import MyApps, { MyAppsPath } from "./routes/MyApps";
 import Settings, { SettingsPath } from "./routes/Settings";
 import Login, { LoginPath } from "./routes/Login";
@@ -59,7 +58,6 @@ export default function App() {
         <div data-scope="App">
           <${Router}>
             <${Route} path=${HomePath} component=${withLayout(Home)} />
-            <${Route} path=${ExplorePath} component=${withLayout(Explore)} />
             <${Route} path=${MyAppsPath} component=${withLayout(MyApps)} />
             <${Route} path=${SettingsPath} component=${withLayout(Settings)} />
             <${Route} path=${LoginPath} component=${withLayout(Login)} />

@@ -3,20 +3,16 @@ import { t } from "/utils/i18n";
 
 const QUESTIONS = [
   {
-    q: "What is App Studo?",
-    a: "App Studo lets you build small personal apps just by describing what you want. They run in your browser, work instantly, and keep your data on your device.",
+    q: "What is Appliet?",
+    a: "Appliet lets you apply your ideas as small personal applets. Describe what you need and Appliet builds a working applet that runs in your browser and keeps your data on your device.",
   },
   {
-    q: "What kind of apps can I build?",
+    q: "What kind of applets can I build?",
     a: "Anything small and personal: trackers, journals, calculators, checklists, simple games, or quick one-off tools that make your life easier.",
   },
   {
     q: "Where is my data stored?",
-    a: "Each app saves its data locally in your browser. Nothing is sent to a server, so your notes and entries stay private to you.",
-  },
-  {
-    q: "Can I share the apps I build?",
-    a: "Yes. Publish an app to the community gallery so others can discover and use it, or remix apps that others have shared.",
+    a: "Each applet saves its data locally in your browser. Nothing is sent to a server, so your notes and entries stay private to you.",
   },
 ] as const;
 

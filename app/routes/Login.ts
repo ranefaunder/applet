@@ -29,7 +29,7 @@ export default function Login({ params }: RoutePropsForPath<typeof LoginPath>) {
       </header>
 
       <div ui-card ui-padding="lg" ui-column="gap-md">
-        <p class="login-intro">${t("Sign in to create apps")}</p>
+        <p class="login-intro">${t("Sign in to apply your ideas")}</p>
         <div ui-row="gap-sm" class="login-actions">
           <button type="button" ui-button="primary" commandfor="login-dialog" command="show-modal">
             ${t("Login")}

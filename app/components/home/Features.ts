@@ -4,18 +4,18 @@ import { t } from "/utils/i18n";
 const FEATURES = [
   {
     icon: "⚡",
-    title: "Ready in minutes",
-    body: "Describe your idea and get a working app instantly — no setup, no waiting.",
+    title: "Applied in minutes",
+    body: "Describe your idea and Appliet applies it instantly — no setup, no waiting.",
   },
   {
     icon: "🔒",
     title: "Truly yours",
-    body: "Your apps store data right in your browser. No accounts to wire up, no servers to manage.",
+    body: "Your applets store data right in your browser. No accounts to wire up, no servers to manage.",
   },
   {
     icon: "✨",
     title: "No code required",
-    body: "Just write what you need in plain language. App Studo builds the rest.",
+    body: "Just describe it in plain language. Appliet applies the rest.",
   },
 ] as const;
 
