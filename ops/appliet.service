@@ -1,0 +1,18 @@
+[Unit]
+Description=Appliet
+After=network.target
+
+[Service]
+Type=simple
+User=faunder
+Group=faunder
+WorkingDirectory=/home/faunder/apps/appstudo
+Environment="PATH=/home/faunder/.bun/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="PORT=8090"
+EnvironmentFile=/home/faunder/apps/appstudo/.env
+ExecStart=/home/faunder/.bun/bin/bun start
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

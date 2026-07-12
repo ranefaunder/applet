@@ -1,7 +1,7 @@
 import { t } from "/utils/i18n";
 import type { Language } from "/types/i18n-types";
 
-const APPLIET_SITE_ORIGIN = "https://appliet.com";
+const APPLIET_SITE_ORIGIN = "https://appliet.faunder.fi";
 
 export function createWelcomeEmail(language: Language): { subject: string; text: string } {
   const siteUrl = `${APPLIET_SITE_ORIGIN}/${language}/`;
