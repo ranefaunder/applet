@@ -140,7 +140,7 @@ export default function HomeHero() {
       }
 
       .content {
-        max-width: 44rem;
+        max-width: 56rem;
         text-align: center;
       }
 
@@ -169,10 +169,12 @@ export default function HomeHero() {
       }
 
       .title {
-        font-size: clamp(2.5rem, 6vw + 0.5rem, 4.25rem);
-        line-height: 1.02;
+        max-width: 54rem;
+        margin-inline: auto;
+        font-size: clamp(2.25rem, 5vw + 0.75rem, 3.75rem);
+        line-height: 1.05;
         letter-spacing: -0.02em;
-        text-wrap: balance;
+        text-wrap: pretty;
         margin-bottom: 1.25rem;
       }
 

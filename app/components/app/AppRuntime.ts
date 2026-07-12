@@ -2,8 +2,11 @@ import { html, css } from "/utils/markup";
 import { useRef, useEffect } from "preact/hooks";
 import { isDraftConfig } from "/types/app-config-types";
 import { t } from "/utils/i18n";
+import { getLang } from "/utils/lang";
+import { useLocation } from "preact-iso";
 import { currentApp, appLoading, appError, ensureAppReady } from "/app/stores/appViewStore";
 import AppCodePreviewDialog from "/app/components/app/AppCodePreviewDialog";
+import { appRunUrl } from "/utils/app-url";
 
 type Props = {
   slug: string;
@@ -42,6 +45,8 @@ function buildFrameDoc(tagName: string, moduleUrl: string): string {
 
 export default function AppRuntime({ slug }: Props) {
   const frameRef = useRef<HTMLIFrameElement>(null);
+  const { path } = useLocation();
+  const lang = getLang(path ?? "") ?? "en";
 
   const app = currentApp.value;
   const error = appError.value;
@@ -103,15 +108,26 @@ export default function AppRuntime({ slug }: Props) {
           <h1 ui-heading="lg">${app.title}</h1>
           <p class="description">${app.description}</p>
         </div>
-        <button
-          type="button"
-          ui-button="secondary sm"
-          class="preview-code-btn"
-          commandfor="app-code-preview-dialog"
-          command="show-modal"
-        >
-          ${t("Preview code")}
-        </button>
+        <div class="app-header-actions">
+          <a
+            href=${appRunUrl(lang, slug)}
+            target="_blank"
+            rel="noopener noreferrer"
+            ui-button="secondary sm"
+            class="open-app-btn"
+          >
+            ${t("Open app")}
+          </a>
+          <button
+            type="button"
+            ui-button="secondary sm"
+            class="preview-code-btn"
+            commandfor="app-code-preview-dialog"
+            command="show-modal"
+          >
+            ${t("Preview code")}
+          </button>
+        </div>
       </header>
 
       <${AppCodePreviewDialog} code=${app.config.code} tagName=${app.config.tagName} />
@@ -154,9 +170,17 @@ export default function AppRuntime({ slug }: Props) {
         min-width: 0;
       }
 
+      .app-header-actions {
+        display: flex;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.125rem;
+      }
+
+      .open-app-btn,
       .preview-code-btn {
         flex-shrink: 0;
-        margin-top: 0.125rem;
       }
 
       .emoji {

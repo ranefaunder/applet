@@ -8,6 +8,7 @@ import redirectRoute from "./routes/redirect";
 import robotsTxt from "./routes/robots-txt";
 import sitemapXml from "./routes/sitemap-xml";
 import siteWebmanifest from "./routes/site-webmanifest";
+import { appRunHtml, appRunModule } from "./routes/app-run";
 
 import authLogout from "./api/auth/logout";
 import authRegister from "./api/auth/register";
@@ -44,6 +45,8 @@ const server = Bun.serve({
 
     "/static/*": staticRoute,
     "/app.js": clientJsRoute,
+    "/:lang/app/:slug/run.js": appRunModule,
+    "/:lang/app/:slug/run": appRunHtml,
     "/:lang": redirectRoute,
     "/:lang/": appRoute,
     "/:lang/*": appRoute,

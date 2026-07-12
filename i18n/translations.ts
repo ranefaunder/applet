@@ -131,6 +131,7 @@ export const translations = {
   "App not found": { fi: "Sovellusta ei löydy" },
   "Could not save entry. Try again.": { fi: "Merkinnän tallennus epäonnistui. Yritä uudelleen." },
   "Preview code": { fi: "Esikatsele koodia" },
+  "Open app": { fi: "Avaa sovellus" },
   "Web component code": { fi: "Web-komponentin koodi" },
   "Copy code": { fi: "Kopioi koodi" },
   "Close": { fi: "Sulje" },
