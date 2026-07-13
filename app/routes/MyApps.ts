@@ -2,9 +2,9 @@ import { html, css } from "/utils/markup";
 import type { RoutePropsForPath } from "preact-iso";
 import { useEffect } from "preact/hooks";
 import { t } from "/utils/i18n";
-import { apps, loadApps } from "/app/stores/appStore";
+import { apps, loadApps, clearApps } from "/app/stores/appStore";
 import AppCard from "/app/components/generals/AppCard";
-import { isLoggedIn } from "/app/stores/userStore";
+import { isLoggedIn, user } from "/app/stores/userStore";
 import { getLang } from "/utils/lang";
 import { useLocation } from "preact-iso";
 
@@ -14,10 +14,15 @@ export default function MyApps(_props: RoutePropsForPath<typeof MyAppsPath>) {
   const { path } = useLocation();
   const lang = getLang(path ?? "") ?? "en";
   const list = apps.value;
+  const loggedInUser = user.value;
 
   useEffect(() => {
-    void loadApps();
-  }, []);
+    if (loggedInUser) {
+      void loadApps();
+    } else {
+      clearApps();
+    }
+  }, [loggedInUser?.id]);
 
   const view = html`
     <div data-scope="MyApps" ui-container="md" ui-margin="top-2xl">

@@ -20,3 +20,7 @@ export async function loadApps(): Promise<void> {
     apps.value = result.data.apps;
   }
 }
+
+export function clearApps(): void {
+  apps.value = [];
+}

@@ -2,6 +2,7 @@ import { signal } from "@preact/signals";
 import { apiFetch } from "/utils/api.client";
 import { getLang } from "/utils/lang";
 import { ssrContext } from "/utils/ssr.client";
+import { clearApps, loadApps } from "/app/stores/appStore";
 import type { LoggedInUser } from "/types/user-types";
 import type { Language } from "/types/i18n-types";
 import { parseJson } from "/utils/json";
@@ -92,6 +93,7 @@ export const login = async (email: string, code: string): Promise<boolean> => {
       const normalized = normalizeStoredUser(result.data.user);
       user.value = normalized;
       localStorage.setItem("appstudo-user", JSON.stringify(normalized));
+      void loadApps();
       return true;
     }
     return false;
@@ -132,6 +134,7 @@ export const register = async (
       const normalized = normalizeStoredUser(result.data.user);
       user.value = normalized;
       saveUserToStorage(normalized);
+      void loadApps();
       return { success: true, registration: true, user: normalized };
     }
     return { success: false, errorMessage: undefined };
@@ -167,6 +170,7 @@ export const logout = async () => {
   } finally {
     user.value = null;
     saveUserToStorage(null);
+    clearApps();
     Object.keys(localStorage)
       .filter((key) => key.startsWith("appstudo-"))
       .forEach((key) => {
