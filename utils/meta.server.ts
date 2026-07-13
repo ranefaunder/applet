@@ -20,9 +20,9 @@ export async function getMeta(req: BunRequest): Promise<string> {
   const { origin, pathname } = new URL(req.url);
   const staticRoot = resolveStaticRootFromUrl(req.url);
 
-  const title = metaPlainForTitleElement(t("Appliet — Apply it.", lang));
+  const title = metaPlainForTitleElement(t("Applet — Apply it.", lang));
   const description = metaPlainForHtmlAttribute(
-    t("Build personal apps for your needs. Describe what you need — Appliet builds it in minutes.", lang),
+    t("Build personal apps for your needs. Describe what you need — Applet builds it in minutes.", lang),
   );
   const ogImage = `${staticRoot}/favicons/android-chrome-512x512.png`;
 
@@ -53,9 +53,9 @@ export type ClientMeta = Record<string, string>;
 
 export async function getClientMeta(req: Pick<Request, "url">): Promise<ClientMeta> {
   const lang = getLang(req.url) ?? DEFAULT_LANGUAGE;
-  const title = metaPlainForTitleElement(t("Appliet — Apply it.", lang));
+  const title = metaPlainForTitleElement(t("Applet — Apply it.", lang));
   const description = metaPlainForHtmlAttribute(
-    t("Build personal apps for your needs. Describe what you need — Appliet builds it in minutes.", lang),
+    t("Build personal apps for your needs. Describe what you need — Applet builds it in minutes.", lang),
   );
   return {
     title,

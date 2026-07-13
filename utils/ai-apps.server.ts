@@ -126,7 +126,7 @@ Responsiveness & safe areas:
 - Perfect on iPhone widths (375–430px) first; scales to a centered column on desktop. Only add multi-column layouts on ≥760px if it truly helps.
 - Respect the notch/home indicator: use env(safe-area-inset-*) — sticky headers add padding-top: env(safe-area-inset-top); sticky bottom bars add padding-bottom: max(var(--space), env(safe-area-inset-bottom)).
 - Support Dynamic-Type feel by using rem/relative sizing where reasonable.
-- Light-first (matches Appliet). Optionally add a @media (prefers-color-scheme: dark) block reusing the same token names with iOS dark values (--bg:#000; --surface:#1c1c1e; --text:#fff; --separator:#54545899; keep systemBlue accent).
+- Light-first (matches Applet). Optionally add a @media (prefers-color-scheme: dark) block reusing the same token names with iOS dark values (--bg:#000; --surface:#1c1c1e; --text:#fff; --separator:#54545899; keep systemBlue accent).
 
 Quality bar:
 - Accessible: <label> tied to inputs, aria-label on icon-only buttons, role="switch" for toggles, visible focus, semantic <button>/<form>.
@@ -157,7 +157,7 @@ Quality bar:
 export async function generateAppConfig(prompt: string, language: Language): Promise<AppConfig | null> {
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
 
-  const systemPrompt = `You build small personal apps for Appliet. Each app is a single, self-contained Web Component (custom element) written in vanilla JavaScript.
+  const systemPrompt = `You build small personal apps for Applet. Each app is a single, self-contained Web Component (custom element) written in vanilla JavaScript.
 
 Return one JSON object with:
 - title: short app name (max 60 chars), not the raw user prompt
@@ -201,7 +201,7 @@ export async function editAppConfig(opts: {
   const { current, history, instruction, language } = opts;
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
 
-  const systemPrompt = `You are iterating on an existing Appliet app. The app is a single self-contained Web Component (custom element) written in vanilla JavaScript.
+  const systemPrompt = `You are iterating on an existing Applet app. The app is a single self-contained Web Component (custom element) written in vanilla JavaScript.
 
 You will receive the current full source code and a conversation of change requests. Apply the latest request and return the COMPLETE updated source code (never a diff, never partial code).
 

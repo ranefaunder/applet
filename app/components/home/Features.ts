@@ -5,7 +5,7 @@ const FEATURES = [
   {
     icon: "⚡",
     title: "Applied in minutes",
-    body: "Describe your idea and Appliet applies it instantly — no setup, no waiting.",
+    body: "Describe your idea and Applet applies it instantly — no setup, no waiting.",
   },
   {
     icon: "🔒",
@@ -15,7 +15,7 @@ const FEATURES = [
   {
     icon: "✨",
     title: "No code required",
-    body: "Just describe it in plain language. Appliet applies the rest.",
+    body: "Just describe it in plain language. Applet applies the rest.",
   },
 ] as const;
 

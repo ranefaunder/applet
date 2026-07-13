@@ -3,8 +3,8 @@ import { t } from "/utils/i18n";
 
 const QUESTIONS = [
   {
-    q: "What is Appliet?",
-    a: "Appliet lets you apply your ideas as small personal apps. Describe what you need and Appliet builds a working app that runs in your browser and keeps your data on your device.",
+    q: "What is Applet?",
+    a: "Applet lets you apply your ideas as small personal apps. Describe what you need and Applet builds a working app that runs in your browser and keeps your data on your device.",
   },
   {
     q: "What kind of apps can I build?",

@@ -19,7 +19,7 @@ export default function ClosingCta() {
           <span class="faunder-logo-font">A</span>
         </span>
         <h2 ui-heading="xxl" class="title">${t("What will you apply?")}</h2>
-        <p class="subtitle">${t("Describe your idea and watch Appliet apply it in minutes.")}</p>
+        <p class="subtitle">${t("Describe your idea and watch Applet apply it in minutes.")}</p>
         <div class="actions">
           <a href="/${lang}/" ui-button="primary" onClick=${focusPrompt}>
             ${t("Apply It")}

@@ -52,7 +52,7 @@ export default function Settings({ params }: RoutePropsForPath<typeof SettingsPa
             checked=${user.value.marketingOptIn === true}
             onChange=${handleMarketingChange}
           />
-          <span>${t("Email me about Appliet updates")}</span>
+          <span>${t("Email me about Applet updates")}</span>
         </label>
       </section>
     </div>

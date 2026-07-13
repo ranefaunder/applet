@@ -64,7 +64,7 @@ export default function HomeHero() {
           ${t("Build Personal Apps for Your Needs.")}
         </h1>
         <p class="subtitle">
-          ${t("Describe what you need in plain language. Appliet builds your app in minutes — no code required.")}
+          ${t("Describe what you need in plain language. Applet builds your app in minutes — no code required.")}
         </p>
 
         <form class="prompt-form" onSubmit=${handleSubmit}>

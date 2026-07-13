@@ -20,7 +20,7 @@ export default function TermsDialog() {
         <button ui-button="square inline" ui-icon="x" onClick=${() => dialogRef.current?.close()} aria-label="Close"></button>
       </header>
       <div class="terms-body">
-        <p>${t("Appliet is a platform for creating personal apps. By using the service you accept these terms.")}</p>
+        <p>${t("Applet is a platform for creating personal apps. By using the service you accept these terms.")}</p>
         <p>Use the service for personal, non-abusive purposes. We may update features as the product evolves.</p>
       </div>
     </dialog>

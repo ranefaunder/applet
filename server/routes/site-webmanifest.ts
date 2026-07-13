@@ -6,9 +6,9 @@ import { getLang } from "/utils/lang";
 export default async function (req: BunRequest): Promise<Response> {
   const lang = getLang(req.url) ?? DEFAULT_LANGUAGE;
   const manifest = {
-    name: t("Appliet — Apply it.", lang),
-    short_name: "Appliet",
-    description: t("Build personal apps for your needs. Describe what you need — Appliet builds it in minutes.", lang),
+    name: t("Applet — Apply it.", lang),
+    short_name: "Applet",
+    description: t("Build personal apps for your needs. Describe what you need — Applet builds it in minutes.", lang),
     start_url: `/${lang}/`,
     display: "standalone",
     background_color: "#ffffff",

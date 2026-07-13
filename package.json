@@ -1,5 +1,5 @@
 {
-  "name": "appliet",
+  "name": "applet",
   "module": "server/server.ts",
   "type": "module",
   "private": true,

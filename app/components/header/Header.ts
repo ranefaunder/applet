@@ -17,11 +17,11 @@ export default function Header() {
 
   const view = html`
     <header ui-container="lg" class="app-header" data-scope="Header">
-      <a href=${`/${lang}/`} class="logo" aria-label="Appliet">
+      <a href=${`/${lang}/`} class="logo" aria-label="Applet">
         <span class="logo-icon" aria-hidden="true">
           <span class="logo-icon-letter faunder-logo-font">A</span>
         </span>
-        <span class="logo-text faunder-logo-font">Appliet</span>
+        <span class="logo-text faunder-logo-font">Applet</span>
       </a>
       <nav class="navigation">
         <a href="/${lang}/" ui-button="inline">${t("Create")}</a>

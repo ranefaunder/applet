@@ -20,9 +20,9 @@ export default function RegistrationSuccessDialog() {
   const view = html`
     <dialog id="registration-success-dialog" ref=${dialogRef} ui-dialog="xs" closedby="any">
       <header>
-        <h2>${t("Welcome to Appliet!")}</h2>
+        <h2>${t("Welcome to Applet!")}</h2>
       </header>
-      <p>${t("Thank you for joining Appliet. Describe what you need and Appliet applies it — your first app in minutes.")}</p>
+      <p>${t("Thank you for joining Applet. Describe what you need and Applet applies it — your first app in minutes.")}</p>
       <footer>
         <button
           type="button"

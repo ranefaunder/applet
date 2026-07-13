@@ -3,17 +3,17 @@ import { AVAILABLE_LANGUAGES } from "/i18n/languages";
 export type Language = keyof typeof AVAILABLE_LANGUAGES;
 
 export const translations = {
-  "Appliet — Apply it.": {
-    fi: "Appliet — Toteuta se.",
+  "Applet — Apply it.": {
+    fi: "Applet — Toteuta se.",
   },
   "Build Personal Apps for Your Needs.": {
     fi: "Tee henkilökohtaisia appeja tarpeisiisi.",
   },
-  "Describe what you need in plain language. Appliet builds your app in minutes — no code required.": {
-    fi: "Kuvaile mitä tarvitset arkikielellä. Appliet rakentaa sovelluksen minuuteissa — ei koodia.",
+  "Describe what you need in plain language. Applet builds your app in minutes — no code required.": {
+    fi: "Kuvaile mitä tarvitset arkikielellä. Applet rakentaa sovelluksen minuuteissa — ei koodia.",
   },
-  "Build personal apps for your needs. Describe what you need — Appliet builds it in minutes.": {
-    fi: "Tee henkilökohtaisia appeja tarpeisiisi. Kuvaile mitä tarvitset — Appliet rakentaa sen minuuteissa.",
+  "Build personal apps for your needs. Describe what you need — Applet builds it in minutes.": {
+    fi: "Tee henkilökohtaisia appeja tarpeisiisi. Kuvaile mitä tarvitset — Applet rakentaa sen minuuteissa.",
   },
   "Apply It": {
     fi: "Toteuta se",
@@ -42,14 +42,14 @@ export const translations = {
   "Describe your idea": {
     fi: "Kuvaile ideasi",
   },
-  "Tell Appliet what you need — a packing list, budget tracker, or anything else.": {
-    fi: "Kerro Applietille mitä tarvitset — pakkauslista, budjettiseuranta tai mikä tahansa muu.",
+  "Tell Applet what you need — a packing list, budget tracker, or anything else.": {
+    fi: "Kerro Appletille mitä tarvitset — pakkauslista, budjettiseuranta tai mikä tahansa muu.",
   },
   "Apply it": {
     fi: "Toteuta se",
   },
-  "Appliet applies your idea into a working app you can use right away.": {
-    fi: "Appliet toteuttaa ideasi toimivana sovelluksena, jota voit käyttää heti.",
+  "Applet applies your idea into a working app you can use right away.": {
+    fi: "Applet toteuttaa ideasi toimivana sovelluksena, jota voit käyttää heti.",
   },
   "Edit anytime": {
     fi: "Muokkaa milloin tahansa",
@@ -81,23 +81,23 @@ export const translations = {
   "No apps yet": {
     fi: "Ei vielä appeja",
   },
-  "Welcome to Appliet!": { fi: "Tervetuloa Applietiin!" },
+  "Welcome to Applet!": { fi: "Tervetuloa Appletiin!" },
   "Hello,": { fi: "Hei," },
-  "Thank you for joining Appliet. Describe what you need and Appliet applies it — your first app in minutes.": {
-    fi: "Kiitos liittymisestä Applietiin. Kuvaile mitä tarvitset — Appliet toteuttaa sen, ensimmäinen app minuuteissa.",
+  "Thank you for joining Applet. Describe what you need and Applet applies it — your first app in minutes.": {
+    fi: "Kiitos liittymisestä Appletiin. Kuvaile mitä tarvitset — Applet toteuttaa sen, ensimmäinen app minuuteissa.",
   },
-  "Open Appliet:\n$url": { fi: "Avaa Appliet:\n$url" },
-  "Best regards\nRane Faunder\nFounder of Appliet": { fi: "Ystävällisin terveisin\nRane Faunder\nApplietin perustaja" },
-  "Appliet - Login Code": { fi: "Appliet – kirjautumiskoodi" },
+  "Open Applet:\n$url": { fi: "Avaa Applet:\n$url" },
+  "Best regards\nRane Faunder\nFounder of Applet": { fi: "Ystävällisin terveisin\nRane Faunder\nAppletin perustaja" },
+  "Applet - Login Code": { fi: "Applet – kirjautumiskoodi" },
   "Hello!": { fi: "Hei!" },
-  "Use the following code to log in to Appliet:": { fi: "Käytä seuraavaa koodia kirjautuaksesi Applietiin:" },
+  "Use the following code to log in to Applet:": { fi: "Käytä seuraavaa koodia kirjautuaksesi Appletiin:" },
   "Important:": { fi: "Tärkeää:" },
   "• Code is valid for 10 minutes": { fi: "• Koodi on voimassa 10 minuuttia" },
   "• Code can only be used once": { fi: "• Koodia voi käyttää vain kerran" },
   "• If you didn't request this code, you can safely ignore this message": {
     fi: "• Jos et pyytänyt tätä koodia, voit jättää viestin huomiotta",
   },
-  "Appliet Team": { fi: "Appliet-tiimi" },
+  "Applet Team": { fi: "Applet-tiimi" },
   "Email address required": { fi: "Sähköpostiosoite vaaditaan" },
   "Email address is too long": { fi: "Sähköpostiosoite on liian pitkä" },
   "Invalid email address": { fi: "Virheellinen sähköpostiosoite" },
@@ -150,25 +150,25 @@ export const translations = {
   "Could not update app. Try again.": { fi: "Appin päivitys epäonnistui. Yritä uudelleen." },
   "Code must still register <$tag>.": { fi: "Koodin on yhä rekisteröitävä <$tag>." },
   "Applied in minutes": { fi: "Toteutettu minuuteissa" },
-  "Describe your idea and Appliet applies it instantly — no setup, no waiting.": {
-    fi: "Kuvaile ideasi — Appliet toteuttaa sen heti. Ei asennusta, ei odottelua.",
+  "Describe your idea and Applet applies it instantly — no setup, no waiting.": {
+    fi: "Kuvaile ideasi — Applet toteuttaa sen heti. Ei asennusta, ei odottelua.",
   },
   "Truly yours": { fi: "Täysin sinun" },
   "Your apps store data right in your browser. No accounts to wire up, no servers to manage.": {
     fi: "Appit tallentavat datan suoraan selaimeesi. Ei tilien kytkentää, ei palvelimien ylläpitoa.",
   },
   "No code required": { fi: "Ei koodia" },
-  "Just describe it in plain language. Appliet applies the rest.": {
-    fi: "Kuvaile arkikielellä. Appliet toteuttaa loput.",
+  "Just describe it in plain language. Applet applies the rest.": {
+    fi: "Kuvaile arkikielellä. Applet toteuttaa loput.",
   },
   "Make every idea an app": { fi: "Tee jokaisesta ideasta app" },
   "Describe it, apply it — right where you work.": {
     fi: "Kuvaile, toteuta — juuri siellä missä työskentelet.",
   },
   "Frequently asked questions": { fi: "Usein kysytyt kysymykset" },
-  "What is Appliet?": { fi: "Mikä on Appliet?" },
-  "Appliet lets you apply your ideas as small personal apps. Describe what you need and Appliet builds a working app that runs in your browser and keeps your data on your device.": {
-    fi: "Applietilla toteutat ideasi pieninä henkilökohtaisina appeina. Kuvaile mitä tarvitset — Appliet rakentaa toimivan appin selaimeesi, data pysyy laitteellasi.",
+  "What is Applet?": { fi: "Mikä on Applet?" },
+  "Applet lets you apply your ideas as small personal apps. Describe what you need and Applet builds a working app that runs in your browser and keeps your data on your device.": {
+    fi: "Appletilla toteutat ideasi pieninä henkilökohtaisina appeina. Kuvaile mitä tarvitset — Applet rakentaa toimivan appin selaimeesi, data pysyy laitteellasi.",
   },
   "What kind of apps can I build?": { fi: "Millaisia appeja voin tehdä?" },
   "Anything small and personal: trackers, journals, calculators, checklists, simple games, or quick one-off tools that make your life easier.": {
@@ -179,8 +179,8 @@ export const translations = {
     fi: "Jokainen app tallentaa datansa paikallisesti selaimeesi. Mitään ei lähetetä palvelimelle — merkintäsi pysyvät yksityisinä.",
   },
   "What will you apply?": { fi: "Mitä toteutat seuraavaksi?" },
-  "Describe your idea and watch Appliet apply it in minutes.": {
-    fi: "Kuvaile ideasi ja katso Applietin toteuttavan sen minuuteissa.",
+  "Describe your idea and watch Applet apply it in minutes.": {
+    fi: "Kuvaile ideasi ja katso Appletin toteuttavan sen minuuteissa.",
   },
   "Apply your first app": {
     fi: "Toteuta ensimmäinen appisi",
@@ -188,11 +188,11 @@ export const translations = {
   "Describe your idea and see your first app in minutes.": {
     fi: "Kuvaile ideasi ja näe ensimmäinen app minuuteissa.",
   },
-  "Email me about Appliet updates": {
-    fi: "Lähetä minulle sähköpostia Appliet-päivityksistä",
+  "Email me about Applet updates": {
+    fi: "Lähetä minulle sähköpostia Applet-päivityksistä",
   },
-  "Appliet is a platform for creating personal apps. By using the service you accept these terms.": {
-    fi: "Appliet on alusta henkilökohtaisten appien luomiseen. Käyttämällä palvelua hyväksyt nämä ehdot.",
+  "Applet is a platform for creating personal apps. By using the service you accept these terms.": {
+    fi: "Applet on alusta henkilökohtaisten appien luomiseen. Käyttämällä palvelua hyväksyt nämä ehdot.",
   },
 } as const;
 

@@ -4,11 +4,11 @@ import { t } from "/utils/i18n";
 const STEPS = [
   {
     title: "Describe your idea",
-    body: "Tell Appliet what you need — a packing list, budget tracker, or anything else.",
+    body: "Tell Applet what you need — a packing list, budget tracker, or anything else.",
   },
   {
     title: "Apply it",
-    body: "Appliet applies your idea into a working app you can use right away.",
+    body: "Applet applies your idea into a working app you can use right away.",
   },
   {
     title: "Edit anytime",
