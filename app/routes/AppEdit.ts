@@ -16,11 +16,9 @@ import {
   editError,
   editMode,
   codeDraft,
-  previewNonce,
   loadEdit,
   sendChatMessage,
   saveCode,
-  bumpPreview,
 } from "/app/stores/appEditStore";
 
 export const AppEditPath = "/:lang/app/:slug/edit" as const;
@@ -59,39 +57,21 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
                 <p ui-heading="sm">${t("You can only edit your own apps.")}</p>
                 <a href=${appPageUrl(lang, slug)} ui-button="primary">${t("Open app")}</a>
               </div>`
-            : html`<${EditWorkspace} lang=${lang} slug=${slug} />`}
+            : html`<${EditWorkspace} slug=${slug} />`}
     </div>
   `;
 
   return [view, style()];
 }
 
-function EditWorkspace({ lang, slug }: { lang: string; slug: string }) {
-  const previewUrl = `${appPageUrl(lang, slug)}?preview=${previewNonce.value}`;
-
+function EditWorkspace({ slug }: { slug: string }) {
   return html`
     <div class="workspace">
-      <section class="preview-pane">
-        <div class="preview-head">
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-          <button type="button" class="reload" onClick=${() => bumpPreview()} aria-label=${t("Reload preview")}>
-            ↻
-          </button>
-        </div>
-        <iframe
-          class="preview-frame"
-          src=${previewUrl}
-          title=${t("App preview")}
-        ></iframe>
-      </section>
-
-      <section class="editor-pane">
-        <${ModeTabs} />
-        ${editError.value ? html`<div class="error-banner">${editError.value}</div>` : ""}
-        ${editMode.value === "chat"
-          ? html`<${ChatPanel} slug=${slug} />`
-          : html`<${CodePanel} slug=${slug} />`}
-      </section>
+      <${ModeTabs} />
+      ${editError.value ? html`<div class="error-banner">${editError.value}</div>` : ""}
+      ${editMode.value === "chat"
+        ? html`<${ChatPanel} slug=${slug} />`
+        : html`<${CodePanel} slug=${slug} />`}
     </div>
   `;
 }
@@ -252,7 +232,7 @@ function CodePanel({ slug }: { slug: string }) {
           disabled=${!dirty || saving}
           onClick=${() => void saveCode(slug)}
         >
-          ${saving ? t("Saving…") : t("Save & run")}
+          ${saving ? t("Saving…") : t("Save")}
         </button>
       </div>
     </div>
@@ -343,64 +323,9 @@ function style() {
       .workspace {
         flex: 1;
         min-height: 0;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1px;
-        background: var(--neutral-200);
-      }
-
-      .preview-pane,
-      .editor-pane {
         display: flex;
         flex-direction: column;
-        min-height: 0;
-        min-width: 0;
         background: var(--white);
-      }
-
-      .preview-head {
-        flex: none;
-        display: flex;
-        align-items: center;
-        gap: 0.375rem;
-        height: 2.25rem;
-        padding-inline: 0.875rem;
-        background: var(--neutral-100);
-        border-bottom: 1px solid var(--neutral-200);
-      }
-
-      .preview-head .dot {
-        width: 0.625rem;
-        height: 0.625rem;
-        border-radius: 50%;
-        background: var(--neutral-300);
-      }
-
-      .preview-head .reload {
-        margin-left: auto;
-        border: none;
-        background: none;
-        cursor: pointer;
-        font-size: 1rem;
-        color: var(--neutral-600);
-        border-radius: 0.375rem;
-        width: 1.75rem;
-        height: 1.75rem;
-      }
-
-      .preview-head .reload:hover {
-        background: var(--neutral-200);
-      }
-
-      .preview-frame {
-        flex: 1;
-        width: 100%;
-        border: none;
-        background: #f2f2f7;
-      }
-
-      .editor-pane {
-        position: relative;
       }
 
       .tabs {
@@ -432,7 +357,7 @@ function style() {
 
       .error-banner {
         flex: none;
-        margin: 0.5rem;
+        margin: 0.5rem 0.75rem 0;
         padding: 0.625rem 0.875rem;
         border-radius: 0.5rem;
         background: oklch(from var(--danger, #ff3b30) l c h / 12%);
@@ -491,7 +416,7 @@ function style() {
       }
 
       .bubble {
-        max-width: 85%;
+        max-width: 42rem;
         padding: 0.625rem 0.875rem;
         border-radius: 1rem;
         font-size: 0.9375rem;
@@ -618,13 +543,6 @@ function style() {
         padding: 0.75rem;
         border-top: 1px solid var(--neutral-800);
         background: #1e1e1e;
-      }
-
-      @media (max-width: 860px) {
-        .workspace {
-          grid-template-columns: 1fr;
-          grid-template-rows: 40% 60%;
-        }
       }
     }
   `;

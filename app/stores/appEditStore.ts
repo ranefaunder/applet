@@ -14,8 +14,6 @@ export const editSavingCode = signal(false);
 export const editError = signal<string | null>(null);
 export const editMode = signal<EditMode>("chat");
 export const codeDraft = signal<string>("");
-/** Incremented to force the preview iframe to reload with fresh code. */
-export const previewNonce = signal(0);
 
 function lang(): string {
   return getLang(window.location.pathname) ?? "en";
@@ -32,10 +30,6 @@ export function initAppEditStore(): void {
     codeDraft.value = "";
     editMessages.value = [];
   }
-}
-
-export function bumpPreview(): void {
-  previewNonce.value += 1;
 }
 
 export async function loadEdit(slug: string): Promise<void> {
@@ -104,7 +98,6 @@ export async function sendChatMessage(slug: string, text: string): Promise<void>
     editApp.value = result.data.app;
     codeDraft.value = result.data.app.config.code;
     editMessages.value = result.data.messages;
-    bumpPreview();
   } finally {
     editSending.value = false;
   }
@@ -125,7 +118,6 @@ export async function saveCode(slug: string): Promise<void> {
     }
     editApp.value = result.data.app;
     codeDraft.value = result.data.app.config.code;
-    bumpPreview();
   } finally {
     editSavingCode.value = false;
   }
