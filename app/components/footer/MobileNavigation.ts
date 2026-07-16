@@ -9,7 +9,10 @@ function isHomePath(path: string, lang: string): boolean {
 }
 
 function isEditPath(path: string, lang: string): boolean {
-  return path.includes(`/${lang}/edit`) && !path.includes("/app/");
+  return (
+    (path.includes(`/${lang}/edit`) && !path.includes("/app/")) ||
+    /\/app\/[^/]+\/edit\/?$/.test(path)
+  );
 }
 
 function isCreatePath(path: string, lang: string): boolean {

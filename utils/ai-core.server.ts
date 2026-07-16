@@ -1,6 +1,12 @@
 import { jsonrepair } from "jsonrepair";
 import { z } from "zod";
 import { parseJson } from "/utils/json";
+import {
+  EDIT_AI_MODEL_FLASH,
+  EDIT_AI_MODEL_PRO,
+  EDIT_AI_MODEL_PRO_ID,
+  type EditAiModelKey,
+} from "/utils/ai-models";
 
 export type AiResult<T> =
   | { ok: true; data: T }
@@ -22,6 +28,12 @@ export function getPrimaryAiModel(): string {
 
 export function getFallbackAiModel(): string {
   return process.env.AI_FALLBACK_MODEL ?? DEFAULT_AI_MODEL;
+}
+
+/** Resolve edit-chat model key → OpenRouter model id. Flash = env primary. */
+export function resolveEditAiModel(key: EditAiModelKey = EDIT_AI_MODEL_FLASH): string {
+  if (key === EDIT_AI_MODEL_PRO) return EDIT_AI_MODEL_PRO_ID;
+  return getPrimaryAiModel();
 }
 
 export class AiRequestError extends Error {
@@ -50,12 +62,15 @@ export type RequestJsonFromAiInput<T = unknown> = {
   userPrompt: string;
   imageBase64?: string | null;
   schema?: z.ZodType<T>;
+  /** OpenRouter model id; defaults to AI_MODEL / flash. */
+  model?: string;
 };
 
 export type RequestTextFromAiInput = {
   systemPrompt: string;
   userPrompt: string;
   imageBase64?: string | null;
+  model?: string;
 };
 
 /** OpenRouter chat completion; returns assistant message text. */
@@ -109,8 +124,8 @@ async function fetchOpenRouterCompletionForModel(messages: AiChatMessage[], mode
   return content;
 }
 
-async function fetchOpenRouterCompletion(messages: AiChatMessage[]): Promise<string> {
-  const primary = getPrimaryAiModel();
+async function fetchOpenRouterCompletion(messages: AiChatMessage[], model?: string): Promise<string> {
+  const primary = model ?? getPrimaryAiModel();
   const fallback = getFallbackAiModel();
 
   try {
@@ -129,7 +144,7 @@ async function fetchOpenRouterCompletion(messages: AiChatMessage[]): Promise<str
  * Plain-text completion (no JSON parsing). Same transport as requestJsonFromAi.
  */
 export async function requestTextFromAi(input: RequestTextFromAiInput): Promise<string> {
-  const { systemPrompt, userPrompt, imageBase64 } = input;
+  const { systemPrompt, userPrompt, imageBase64, model } = input;
   let userContent: AiChatMessageContent;
   if (imageBase64 != null && imageBase64 !== "") {
     const imgUrl = imageBase64.startsWith("data:") ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`;
@@ -144,7 +159,7 @@ export async function requestTextFromAi(input: RequestTextFromAiInput): Promise<
     { role: "system", content: systemPrompt },
     { role: "user", content: userContent },
   ];
-  const text = await fetchOpenRouterCompletion(messages);
+  const text = await fetchOpenRouterCompletion(messages, model);
   return text.trim();
 }
 
@@ -177,7 +192,7 @@ You MUST respond with a single JSON object that passes the server's schema valid
  * Without `schema`, returns parsed JSON. Network/API/JSON-parse errors throw.
  */
 export async function requestJsonFromAi<T = unknown>(input: RequestJsonFromAiInput<T>): Promise<T | null> {
-  const { systemPrompt, userPrompt, imageBase64, schema } = input;
+  const { systemPrompt, userPrompt, imageBase64, schema, model } = input;
   const systemContent = schema ? appendJsonSchemaToSystemPrompt(systemPrompt, schema) : systemPrompt;
   let userContent: AiChatMessageContent;
   if (imageBase64 != null && imageBase64 !== "") {
@@ -194,7 +209,7 @@ export async function requestJsonFromAi<T = unknown>(input: RequestJsonFromAiInp
     { role: "user", content: userContent },
   ];
 
-  const content = await fetchOpenRouterCompletion(messages);
+  const content = await fetchOpenRouterCompletion(messages, model);
 
   const jsonMatch = content.match(/\{[\s\S]*\}/);
   if (!jsonMatch) return null;

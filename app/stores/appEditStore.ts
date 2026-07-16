@@ -3,6 +3,11 @@ import type { AppDetail, AppEditMessage } from "/types/app-config-types";
 import { ssrContext } from "/utils/ssr.client";
 import { apiFetch } from "/utils/api.client";
 import { getLang } from "/utils/lang";
+import {
+  DEFAULT_EDIT_AI_MODEL,
+  EDIT_AI_MODEL_FLASH,
+  type EditAiModelKey,
+} from "/utils/ai-models";
 
 export type EditMode = "chat" | "code";
 
@@ -14,6 +19,8 @@ export const editSavingCode = signal(false);
 export const editError = signal<string | null>(null);
 export const editMode = signal<EditMode>("chat");
 export const codeDraft = signal<string>("");
+/** UI selection only — Pro is one-shot and resets to Flash after send. */
+export const editAiModel = signal<EditAiModelKey>(DEFAULT_EDIT_AI_MODEL);
 
 function lang(): string {
   return getLang(window.location.pathname) ?? "en";
@@ -72,8 +79,11 @@ export async function sendChatMessage(slug: string, text: string): Promise<void>
   const trimmed = text.trim();
   if (!trimmed || editSending.value) return;
 
+  const model = editAiModel.value;
   editError.value = null;
   editSending.value = true;
+  // Pro is a one-shot: always return the picker to Flash after submitting.
+  editAiModel.value = EDIT_AI_MODEL_FLASH;
 
   // Optimistic: show the user's message immediately.
   const optimistic: AppEditMessage = {
@@ -87,7 +97,7 @@ export async function sendChatMessage(slug: string, text: string): Promise<void>
   try {
     const result = await apiFetch<{ app: AppDetail; messages: AppEditMessage[] }>(
       `/api/${lang()}/app/edit`,
-      { method: "POST", body: JSON.stringify({ slug, message: trimmed }) },
+      { method: "POST", body: JSON.stringify({ slug, message: trimmed, model }) },
     );
     if (!result.success) {
       editError.value = result.error.message ?? result.error.code;

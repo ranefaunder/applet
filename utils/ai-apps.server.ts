@@ -164,7 +164,11 @@ Quality bar:
 - tagName in customElements.define matches the JSON tagName exactly.`;
 }
 
-export async function generateAppConfig(prompt: string, language: Language): Promise<AppConfig | null> {
+export async function generateAppConfig(
+  prompt: string,
+  language: Language,
+  model?: string,
+): Promise<AppConfig | null> {
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
 
   const systemPrompt = `You build small personal apps for Applet. Each app is a single, self-contained Web Component (custom element) written in vanilla JavaScript.
@@ -181,6 +185,7 @@ ${designGuidelines(langName)}`;
     systemPrompt,
     userPrompt: `Create an app for: ${prompt}`,
     schema: aiAppSchema,
+    model,
   });
 
   if (!generated) return null;
@@ -206,8 +211,9 @@ export async function editAppConfig(opts: {
   history: AppEditMessage[];
   instruction: string;
   language: Language;
+  model?: string;
 }): Promise<{ config: AppConfig; summary: string; needsNewIcon: boolean } | null> {
-  const { current, history, instruction, language } = opts;
+  const { current, history, instruction, language, model } = opts;
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
 
   const systemPrompt = `You are iterating on an existing Applet app. The app is a single self-contained Web Component (custom element) written in vanilla JavaScript.
@@ -257,6 +263,7 @@ Return the complete updated code and a short summary of what you changed.`;
     systemPrompt,
     userPrompt,
     schema: aiEditSchema,
+    model,
   });
 
   if (!generated) return null;

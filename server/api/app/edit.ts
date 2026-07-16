@@ -6,6 +6,8 @@ import { dbAddAppMessage, dbListAppMessages } from "/server/database/queries/app
 import { editAppConfig, generateAppConfig } from "/utils/ai-apps.server";
 import { generateAppIcon } from "/utils/ai-app-icons.server";
 import { apiErrorFromAi } from "/utils/ai-api.server";
+import { resolveEditAiModel } from "/utils/ai-core.server";
+import { DEFAULT_EDIT_AI_MODEL, isEditAiModelKey } from "/utils/ai-models";
 import { isDraftConfig, parseAppConfig, type AppConfig, type AppDetail } from "/types/app-config-types";
 import type { Language } from "/types/i18n-types";
 import { getLang } from "/utils/lang";
@@ -41,10 +43,19 @@ export default {
         return apiError({ code: "INVALID_JSON" });
       }
 
-      const b = body as { slug?: string; message?: string };
+      const b = body as { slug?: string; message?: string; model?: string };
       const slug = typeof b.slug === "string" ? b.slug.trim() : "";
       const message = typeof b.message === "string" ? b.message.trim() : "";
       const language = (getLang(req.url) ?? "en") as Language;
+      const modelKey = b.model == null || b.model === ""
+        ? DEFAULT_EDIT_AI_MODEL
+        : isEditAiModelKey(b.model)
+          ? b.model
+          : null;
+      if (!modelKey) {
+        return apiError({ code: "INVALID_MODEL", message: t("Invalid AI model.", language) });
+      }
+      const model = resolveEditAiModel(modelKey);
 
       if (!slug) return apiError({ code: "SLUG_REQUIRED" });
       if (!message || message.length > 2000) {
@@ -80,7 +91,7 @@ export default {
       if (creating) {
         let config;
         try {
-          config = await generateAppConfig(message, language);
+          config = await generateAppConfig(message, language, model);
         } catch (err) {
           const aiError = apiErrorFromAi(err, language);
           if (aiError) return aiError;
@@ -101,7 +112,7 @@ export default {
         const history = dbListAppMessages(row.id);
         let result;
         try {
-          result = await editAppConfig({ current, history, instruction: message, language });
+          result = await editAppConfig({ current, history, instruction: message, language, model });
         } catch (err) {
           const aiError = apiErrorFromAi(err, language);
           if (aiError) return aiError;

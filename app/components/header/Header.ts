@@ -5,9 +5,15 @@ import { getLang } from "/utils/lang";
 import { t } from "/utils/i18n";
 import { isLoggedIn } from "/app/stores/userStore";
 
+function isHomePath(path: string, lang: string): boolean {
+  const normalized = path.replace(/\/+$/, "") || "/";
+  return normalized === `/${lang}` || normalized === "";
+}
+
 export default function Header() {
   const { path } = useLocation();
   const lang = getLang(path ?? "") ?? "en";
+  const home = isHomePath(path ?? "", lang);
 
   function pathForLang(currentPath: string, langCode: string): string {
     const parts = (currentPath || "/").split("/").filter(Boolean);
@@ -20,7 +26,7 @@ export default function Header() {
       ui-container="lg"
       ui-row="x-between y-center gap-xl"
       ui-padding="block-sm"
-      class="app-header"
+      class=${home ? "app-header home" : "app-header"}
       data-scope="Header"
     >
       <a href=${`/${lang}/`} class="logo" ui-row="gap-sm y-center" aria-label="Applet">
@@ -74,6 +80,13 @@ export default function Header() {
     @scope ([data-scope="Header"]) to ([data-scope]) {
       & {
         z-index: 100;
+      }
+
+      /* Mobiilissa header on osa etusivua; muilla sivuilla bottom-nav riittää. */
+      @media (max-width: 799px) {
+        &:not(.home) {
+          display: none;
+        }
       }
 
       .navigation,

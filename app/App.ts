@@ -65,7 +65,7 @@ export default function App() {
             <${Route} path=${HomePath} component=${withLayout(Home)} />
             <${Route} path=${SettingsPath} component=${withLayout(Settings)} />
             <${Route} path=${LoginPath} component=${withLayout(Login)} />
-            <${Route} path=${AppEditPath} component=${AppEdit} />
+            <${Route} path=${AppEditPath} component=${withLayout(AppEdit)} />
             <${Route} default component=${withLayout(NotFound)} />
           <//>
         </div>

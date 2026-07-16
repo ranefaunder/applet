@@ -17,15 +17,22 @@ function isLauncherPath(path: string, lang: string): boolean {
   return normalized === `/${lang}`;
 }
 
+function isAppEditPath(path: string): boolean {
+  return /\/app\/[^/]+\/edit\/?$/.test(path);
+}
+
 export default function Layout({ children }: LayoutProps) {
   const { path } = useLocation();
   const lang = getLang(path ?? "") ?? "en";
-  const hideFooter = isLauncherPath(path ?? "", lang);
+  const home = isLauncherPath(path ?? "", lang);
+  const editor = isAppEditPath(path ?? "");
+  const hideFooter = home || editor;
+  const layoutClass = editor ? "editor" : undefined;
 
   const view = html`
-    <div data-scope="Layout" ui-column>
+    <div data-scope="Layout" class=${layoutClass} ui-column>
       <${Header} />
-      <main class="layout-main">
+      <main class=${editor ? "layout-main editor" : "layout-main"}>
         ${children}
       </main>
       ${hideFooter ? "" : html`<${Footer} />`}
@@ -40,9 +47,22 @@ export default function Layout({ children }: LayoutProps) {
         min-height: 100%;
       }
 
+      &.editor {
+        height: 100dvh;
+        max-height: 100dvh;
+        overflow: hidden;
+      }
+
       .layout-main {
         flex-grow: 1;
+        min-height: 0;
         padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0));
+      }
+
+      .layout-main.editor {
+        display: flex;
+        flex-direction: column;
+        padding-bottom: 0;
       }
 
       @media (min-width: 800px) {
