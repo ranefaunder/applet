@@ -3,21 +3,53 @@ import { useLocation } from "preact-iso";
 import { getLang } from "/utils/lang";
 import { t } from "/utils/i18n";
 
+function isHomePath(path: string, lang: string): boolean {
+  const normalized = path.replace(/\/+$/, "") || "/";
+  return normalized === `/${lang}` || normalized === "";
+}
+
+function isCreatePath(path: string, lang: string): boolean {
+  return path.includes(`/${lang}/create`);
+}
+
+function isSettingsPath(path: string, lang: string): boolean {
+  return path.includes(`/${lang}/settings`);
+}
+
 export default function MobileNavigation() {
   const { path: locationPath } = useLocation();
-  const lang = getLang(locationPath ?? "") ?? "en";
+  const path = locationPath ?? "";
+  const lang = getLang(path) ?? "en";
 
   const view = html`
-    <nav data-scope="MobileNavigation" ui-container="sm">
+    <nav data-scope="MobileNavigation" ui-container="sm" aria-label=${t("My Applets")}>
       <div class="items">
-        <a class="item" href=${`/${lang}/`} aria-label=${t("Create")}>
-          <i ui-icon="magic-wand xl"></i>
-        </a>
-        <a class="item" href=${`/${lang}/apps`} aria-label=${t("My apps")}>
+        <a
+          class=${`item${isHomePath(path, lang) ? " active" : ""}`}
+          href=${`/${lang}/`}
+          aria-label=${t("My Applets")}
+          aria-current=${isHomePath(path, lang) ? "page" : undefined}
+        >
           <i ui-icon="bookmarks xl"></i>
+          <span class="label">${t("My Applets")}</span>
         </a>
-        <a class="item" href=${`/${lang}/settings`} aria-label=${t("Settings")}>
+        <a
+          class=${`item${isCreatePath(path, lang) ? " active" : ""}`}
+          href=${`/${lang}/create`}
+          aria-label=${t("Create")}
+          aria-current=${isCreatePath(path, lang) ? "page" : undefined}
+        >
+          <i ui-icon="magic-wand xl"></i>
+          <span class="label">${t("Create")}</span>
+        </a>
+        <a
+          class=${`item${isSettingsPath(path, lang) ? " active" : ""}`}
+          href=${`/${lang}/settings`}
+          aria-label=${t("Settings")}
+          aria-current=${isSettingsPath(path, lang) ? "page" : undefined}
+        >
           <i ui-icon="user-circle-gear xl"></i>
+          <span class="label">${t("Settings")}</span>
         </a>
       </div>
     </nav>
@@ -26,8 +58,8 @@ export default function MobileNavigation() {
   const style = css`
     @scope ([data-scope="MobileNavigation"]) to ([data-scope]) {
       & {
-        background: oklch(from var(--white) l c h / 70%);
-        backdrop-filter: blur(10px);
+        background: oklch(from var(--white) l c h / 85%);
+        backdrop-filter: blur(12px);
         position: sticky;
         bottom: 0;
         width: 100%;
@@ -38,22 +70,36 @@ export default function MobileNavigation() {
 
       .items {
         display: flex;
-        align-items: center;
+        align-items: stretch;
         justify-content: space-evenly;
         margin-inline: auto;
       }
 
       .item {
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
-        padding: 1rem;
+        gap: 0.2rem;
+        flex: 1;
+        padding: 0.625rem 0.5rem 0.75rem;
         text-decoration: none;
-        color: var(--neutral-600);
+        color: var(--neutral-500);
       }
 
       .item:hover {
-        color: var(--neutral-800);
+        color: var(--neutral-700);
+      }
+
+      .item.active {
+        color: var(--primary-600);
+      }
+
+      .label {
+        font-size: 0.625rem;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        line-height: 1.2;
       }
 
       @media (min-width: 800px) {

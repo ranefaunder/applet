@@ -21,6 +21,24 @@ export const translations = {
   "My apps": {
     fi: "Omat appit",
   },
+  "My Applets": {
+    fi: "Omat appletit",
+  },
+  "Create Applet": {
+    fi: "Luo Applet",
+  },
+  "New Applet": {
+    fi: "Uusi Applet",
+  },
+  "Your ideas. Your apps. Your data. Your way.": {
+    fi: "Ideasi. Appisi. Datasi. Sinun tapasi.",
+  },
+  "Sign in to open your applets": {
+    fi: "Kirjaudu avataksesi appletisi",
+  },
+  "Tap New Applet to build your first app.": {
+    fi: "Napauta Uusi Applet rakentaaksesi ensimmäisen appisi.",
+  },
   "Create": {
     fi: "Luo",
   },

@@ -29,10 +29,10 @@ export default function RegistrationSuccessDialog() {
           ui-button="primary block"
           onClick=${() => {
             dialogRef.current?.close();
-            route(`/${lang}/`, true);
+            route(`/${lang}/create`, true);
           }}
         >
-          ${t("Apply It")}
+          ${t("Create Applet")}
         </button>
       </footer>
     </dialog>

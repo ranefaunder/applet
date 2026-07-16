@@ -54,10 +54,13 @@ function getInitialApp(req: BunRequest, user: AuthenticatedUser | null): AppDeta
 }
 
 function getInitialApps(req: BunRequest, initialUser: AuthenticatedUser | null) {
+  if (!initialUser) return undefined;
+
   const parts = new URL(req.url).pathname.split("/").filter(Boolean);
   const segment = parts[1];
 
-  if (segment === "apps" && initialUser) {
+  // Home launcher (/:lang or /:lang/) and legacy /apps both need the app list.
+  if (segment === undefined || segment === "apps") {
     return dbListUserApps(initialUser.id);
   }
   return undefined;

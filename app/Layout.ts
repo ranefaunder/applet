@@ -1,6 +1,8 @@
 import type { ComponentChildren, ComponentType } from "preact";
 import { h } from "preact";
 import { html, css } from "/utils/markup";
+import { useLocation } from "preact-iso";
+import { getLang } from "/utils/lang";
 import Header from "./components/header/Header";
 import Footer from "./components/footer/Footer";
 import MobileNavigation from "./components/footer/MobileNavigation";
@@ -10,14 +12,23 @@ type LayoutProps = {
   children: ComponentChildren;
 };
 
+function isLauncherPath(path: string, lang: string): boolean {
+  const normalized = path.replace(/\/+$/, "") || "/";
+  return normalized === `/${lang}`;
+}
+
 export default function Layout({ children }: LayoutProps) {
+  const { path } = useLocation();
+  const lang = getLang(path ?? "") ?? "en";
+  const hideFooter = isLauncherPath(path ?? "", lang);
+
   const view = html`
     <div data-scope="Layout">
       <${Header} />
       <main class="layout-main">
         ${children}
       </main>
-      <${Footer} />
+      ${hideFooter ? "" : html`<${Footer} />`}
       <${MobileNavigation} />
       <${Dialogs} />
     </div>

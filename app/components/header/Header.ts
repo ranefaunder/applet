@@ -24,10 +24,8 @@ export default function Header() {
         <span class="logo-text faunder-logo-font">Applet</span>
       </a>
       <nav class="navigation">
-        <a href="/${lang}/" ui-button="inline">${t("Create")}</a>
-        ${isLoggedIn()
-          ? html`<a href="/${lang}/apps" ui-button="inline">${t("My apps")}</a>`
-          : ""}
+        <a href="/${lang}/" ui-button="inline">${t("My Applets")}</a>
+        <a href="/${lang}/create" ui-button="inline">${t("Create")}</a>
       </nav>
       <div class="user-actions">
         <div ui-menu="bottom-left" ui-row>

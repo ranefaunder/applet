@@ -95,6 +95,28 @@ export const dbCreateApp = (data: {
 export const dbExistsAppSlug = (slug: string): boolean =>
   db.query<{ n: number }, [string]>("SELECT 1 as n FROM apps WHERE slug = ? LIMIT 1").get(slug) !== null;
 
+/** Satunnainen 5+ numeroinen julkinen ID (slug), sama malli kuin Cuukbuuk-resepteillä. */
+export function dbGenerateAppSlug(): string {
+  const maxAttempts = 20;
+  let length = 5;
+
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const min = Math.pow(10, length - 1);
+    const max = Math.pow(10, length) - 1;
+    const slug = String(Math.floor(Math.random() * (max - min + 1)) + min);
+
+    if (!dbExistsAppSlug(slug)) {
+      return slug;
+    }
+
+    length++;
+  }
+
+  throw new Error(`Failed to generate unique app slug after ${maxAttempts} attempts`);
+}
+
+export const isNumericAppSlug = (slug: string): boolean => /^\d{5,}$/.test(slug);
+
 export const dbUpdateApp = (id: string, data: { title?: string; description?: string; configJson?: string }) => {
   const now = new Date().toISOString();
   const title = data.title;

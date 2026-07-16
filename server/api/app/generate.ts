@@ -1,32 +1,13 @@
 import type { BunRequest } from "bun";
 import { withAuth } from "/utils/auth.server";
 import { apiError, apiSuccess } from "/utils/api.server";
-import { dbCreateApp, dbExistsAppSlug } from "/server/database/queries/apps";
+import { dbCreateApp, dbGenerateAppSlug } from "/server/database/queries/apps";
 import { generateAppConfig } from "/utils/ai-apps.server";
 import { apiErrorFromAi } from "/utils/ai-api.server";
 import type { Language } from "/types/i18n-types";
 import { t } from "/utils/i18n";
 import { checkRateLimit } from "/utils/rate-limit.server";
 import { getClientIP } from "/utils/request.server";
-
-function slugify(text: string): string {
-  return text
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 48) || "app";
-}
-
-function uniqueSlug(base: string): string {
-  let slug = slugify(base);
-  let i = 0;
-  while (dbExistsAppSlug(slug)) {
-    i += 1;
-    slug = `${slugify(base)}-${i}`;
-  }
-  return slug;
-}
 
 export default {
   async POST(req: BunRequest) {
@@ -75,7 +56,7 @@ export default {
       }
 
       const id = crypto.randomUUID();
-      const slug = uniqueSlug(config.title);
+      const slug = dbGenerateAppSlug();
 
       dbCreateApp({
         id,

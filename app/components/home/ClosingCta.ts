@@ -5,13 +5,6 @@ import { getLang } from "/utils/lang";
 export default function ClosingCta() {
   const lang = getLang(typeof window !== "undefined" ? window.location.pathname : "/en/") ?? "en";
 
-  function focusPrompt(e: Event) {
-    e.preventDefault();
-    const input = document.getElementById("app-prompt");
-    window.scrollTo({ top: 0, behavior: "smooth" });
-    setTimeout(() => (input as HTMLTextAreaElement | null)?.focus(), 400);
-  }
-
   const view = html`
     <section data-scope="ClosingCta">
       <div class="card">
@@ -21,11 +14,11 @@ export default function ClosingCta() {
         <h2 ui-heading="xxl" class="title">${t("What will you apply?")}</h2>
         <p class="subtitle">${t("Describe your idea and watch Applet apply it in minutes.")}</p>
         <div class="actions">
-          <a href="/${lang}/" ui-button="primary" onClick=${focusPrompt}>
-            ${t("Apply It")}
+          <a href="/${lang}/create" ui-button="primary">
+            ${t("Create Applet")}
           </a>
-          <a href="/${lang}/apps" ui-button="secondary">
-            ${t("My apps")}
+          <a href="/${lang}/" ui-button="secondary">
+            ${t("My Applets")}
           </a>
         </div>
       </div>

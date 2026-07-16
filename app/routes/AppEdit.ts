@@ -38,8 +38,8 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
   const view = html`
     <div data-scope="AppEdit">
       <header class="topbar">
-        <a class="back" href=${`/${lang}/apps`} aria-label=${t("My apps")}>
-          <span aria-hidden="true">‹</span> ${t("My apps")}
+        <a class="back" href=${`/${lang}/`} aria-label=${t("My Applets")}>
+          <span aria-hidden="true">‹</span> ${t("My Applets")}
         </a>
         <div class="title" title=${app?.title ?? ""}>${app?.title ?? t("Editor")}</div>
         <a class="open" href=${appPageUrl(lang, slug)} target="_blank" rel="noopener">
@@ -459,7 +459,7 @@ function style() {
         border-radius: 0.75rem;
         padding: 0.625rem 0.75rem;
         font: inherit;
-        font-size: 0.9375rem;
+        font-size: 16px;
         line-height: 1.4;
       }
 
@@ -491,7 +491,7 @@ function style() {
         margin: 0;
         padding: 1rem;
         font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, monospace;
-        font-size: 0.8125rem;
+        font-size: 16px;
         line-height: 1.6;
         tab-size: 2;
         white-space: pre;
