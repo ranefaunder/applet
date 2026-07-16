@@ -78,17 +78,24 @@ export default function AppIcon({ app, editing = false }: Props) {
       }
 
       &.editing .glyph-wrap {
-        animation: applet-jiggle 0.35s ease-in-out infinite alternate;
+        animation: applet-jiggle 0.28s ease-in-out infinite;
+        transform-origin: 50% 60%;
       }
 
       &.editing:nth-child(even) .glyph-wrap {
-        animation-delay: -0.12s;
-        animation-direction: alternate-reverse;
+        animation-delay: -0.14s;
+        animation-direction: reverse;
+      }
+
+      &.editing:nth-child(3n) .glyph-wrap {
+        animation-duration: 0.32s;
+        animation-delay: -0.07s;
       }
 
       @keyframes applet-jiggle {
-        from { transform: rotate(-1.4deg); }
-        to { transform: rotate(1.4deg); }
+        0% { transform: rotate(-2.8deg); }
+        50% { transform: rotate(2.8deg); }
+        100% { transform: rotate(-2.8deg); }
       }
 
       @media (prefers-reduced-motion: reduce) {
