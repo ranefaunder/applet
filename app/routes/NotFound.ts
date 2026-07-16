@@ -1,6 +1,7 @@
 import { html, css } from "/utils/markup";
 import { getLang } from "/utils/lang";
 import { t } from "/utils/i18n";
+
 /** Oletusreitillä ei ole path-mallia; router välittää matchPropsina. */
 type NotFoundPageProps = {
   path: string;
@@ -10,19 +11,14 @@ type NotFoundPageProps = {
 
 export default function NotFound({ path, params }: NotFoundPageProps) {
   const currentLang = params.lang || getLang(path) || "en";
-  
+
   const view = html`
-    <div data-scope="NotFound" class="not-found-container">
-      <div class="not-found-content">
-        <h1 class="not-found-404">404</h1>
-        <h2 class="xl not-found-title">${t("Page not found")}</h2>
-        <p class="not-found-description">
-          The page you are looking for does not exist or has been moved.
-        </p>
-        <a 
-          href=${`/${currentLang}/`} 
-          ui-button="primary lg"
-        >
+    <div data-scope="NotFound" ui-column="x-center y-center" ui-padding="2xl" class="not-found">
+      <div ui-column="gap-sm x-center" class="content">
+        <p class="code" aria-hidden="true">404</p>
+        <h1 ui-heading="xl">${t("Page not found")}</h1>
+        <p class="description">The page you are looking for does not exist or has been moved.</p>
+        <a href=${`/${currentLang}/`} ui-button="primary lg" ui-margin="top-md">
           ${t("Go home")}
         </a>
       </div>
@@ -31,32 +27,22 @@ export default function NotFound({ path, params }: NotFoundPageProps) {
 
   const style = css`
     @scope ([data-scope="NotFound"]) to ([data-scope]) {
-      .not-found-container {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+      .not-found {
         min-height: 60vh;
-        padding: 2rem;
       }
 
-      .not-found-content {
+      .content {
         text-align: center;
       }
 
-      .not-found-404 {
+      .code {
         font-size: 6rem;
         font-weight: 700;
         color: var(--neutral-300);
-        margin-bottom: 1rem;
         line-height: 1;
       }
 
-      .not-found-title {
-        margin-bottom: 0.5rem;
-      }
-
-      .not-found-description {
-        margin-bottom: 2rem;
+      .description {
         color: var(--neutral-600);
       }
     }

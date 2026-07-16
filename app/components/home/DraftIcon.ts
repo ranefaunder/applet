@@ -9,42 +9,25 @@ import { draftAccentColor, draftLetter } from "/utils/app-preview";
 type Props = {
   app: AppSummary;
   editing?: boolean;
-  onDelete?: (app: AppSummary) => void;
 };
 
-export default function DraftIcon({ app, editing = false, onDelete }: Props) {
+export default function DraftIcon({ app, editing = false }: Props) {
   const { path } = useLocation();
   const lang = getLang(path ?? "") ?? "en";
   const color = draftAccentColor(app.slug);
   const letter = draftLetter(app.title);
 
-  function handleDelete(e: Event) {
-    e.preventDefault();
-    e.stopPropagation();
-    onDelete?.(app);
-  }
-
   const view = html`
     <a
       class=${editing ? "draft-icon editing" : "draft-icon"}
       data-scope="DraftIcon"
+      ui-column="gap-sm x-center"
       href=${appEditUrl(lang, app.slug)}
       aria-label=${t("Edit $title", { title: app.title })}
       style=${{ "--draft-color": color }}
     >
       <span class="glyph-wrap">
         <span class="glyph" aria-hidden="true">${letter}</span>
-        ${editing
-          ? html`
-            <button
-              type="button"
-              class="delete-badge"
-              aria-label=${t("Delete $title", { title: app.title })}
-              onClick=${handleDelete}
-            >
-              ×
-            </button>`
-          : ""}
       </span>
       <span class="label">${app.title}</span>
     </a>
@@ -53,17 +36,12 @@ export default function DraftIcon({ app, editing = false, onDelete }: Props) {
   const style = css`
     @scope ([data-scope="DraftIcon"]) to ([data-scope]) {
       & {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
         color: inherit;
         text-decoration: none;
         -webkit-tap-highlight-color: transparent;
       }
 
       .glyph-wrap {
-        position: relative;
         width: 100%;
         aspect-ratio: 1;
       }
@@ -112,30 +90,6 @@ export default function DraftIcon({ app, editing = false, onDelete }: Props) {
         &.editing .glyph-wrap {
           animation: none;
         }
-      }
-
-      .delete-badge {
-        position: absolute;
-        top: -0.3rem;
-        left: -0.3rem;
-        display: grid;
-        place-items: center;
-        width: 1.4rem;
-        height: 1.4rem;
-        padding: 0;
-        border: none;
-        border-radius: 999px;
-        background: var(--neutral-500);
-        color: var(--white);
-        font-size: 1.125rem;
-        font-weight: 500;
-        line-height: 1;
-        cursor: pointer;
-        box-shadow: 0 1px 3px oklch(from var(--neutral-900) l c h / 25%);
-      }
-
-      .delete-badge:hover {
-        background: var(--danger, #ff3b30);
       }
 
       .label {

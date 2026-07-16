@@ -1,13 +1,14 @@
 import { html, css } from "/utils/markup";
 import { h } from "preact";
 import type { RoutePropsForPath } from "preact-iso";
-import { useRoute } from "preact-iso";
+import { useLocation, useRoute } from "preact-iso";
 import { useEffect, useRef, useState } from "preact/hooks";
 import type { AppEditMessage } from "/types/app-config-types";
 import { isDraftConfig } from "/types/app-config-types";
 import { t } from "/utils/i18n";
 import { highlightJavaScript } from "/utils/highlight-js";
 import { appPageUrl } from "/utils/app-url";
+import { deleteApp } from "/app/stores/appStore";
 import {
   editApp,
   editMessages,
@@ -28,8 +29,10 @@ export const AppEditPath = "/:lang/app/:slug/edit" as const;
 
 export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
   const { params } = useRoute();
+  const { route } = useLocation();
   const lang = params.lang ?? "en";
   const slug = params.slug ?? "";
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (slug) void loadEdit(slug);
@@ -41,24 +44,46 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
   const canAddToHome = app != null && app.canEdit && !creating && app.isDraft;
   const publishing = editPublishing.value;
 
+  async function handleDelete() {
+    if (!app || deleting) return;
+    const ok = window.confirm(t("Delete \"$title\"? This cannot be undone.", { title: app.title }));
+    if (!ok) return;
+    setDeleting(true);
+    const success = await deleteApp(slug);
+    setDeleting(false);
+    if (success) route(`/${lang}/`, true);
+  }
+
   const view = html`
-    <div data-scope="AppEdit">
-      <header class="topbar">
-        <a class="back" href=${`/${lang}/`} aria-label=${t("My Applets")}>
+    <div data-scope="AppEdit" ui-column>
+      <header class="topbar" ui-row="y-center gap-md" ui-padding="inline-md">
+        <a class="back" href=${`/${lang}/`} ui-button="inline sm" aria-label=${t("My Applets")}>
           <span aria-hidden="true">‹</span> ${t("My Applets")}
         </a>
         <div class="title" title=${app?.title ?? ""}>${app?.title ?? t("Editor")}</div>
+        ${app?.canEdit
+          ? html`
+            <button
+              type="button"
+              class="delete"
+              ui-button="inline sm"
+              disabled=${deleting}
+              onClick=${() => void handleDelete()}
+            >
+              ${deleting ? t("Deleting…") : t("Delete")}
+            </button>`
+          : ""}
         ${creating
           ? html`<span class="open disabled">${t("Open app")}</span>`
           : html`
-            <a class="open" href=${appPageUrl(lang, slug)} target="_blank" rel="noopener">
+            <a class="open" href=${appPageUrl(lang, slug)} ui-button="inline sm" target="_blank" rel="noopener">
               ${t("Open app")}
             </a>`}
       </header>
 
       ${canAddToHome
         ? html`
-          <div class="draft-banner">
+          <div class="draft-banner" ui-row="wrap y-center x-between gap-sm" ui-padding="md">
             <p>${t("This app is still a draft. Add it to My Applets when you're ready.")}</p>
             <button
               type="button"
@@ -72,12 +97,12 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
         : ""}
 
       ${loading && !app
-        ? html`<div class="state"><span class="spinner" aria-hidden="true"></span><p>${t("Loading…")}</p></div>`
+        ? html`<div class="state" ui-column="gap-md x-center y-center"><i ui-icon="spinner lg"></i><p>${t("Loading…")}</p></div>`
         : !app
-          ? html`<div class="state"><p>${editError.value ?? t("App not found")}</p></div>`
+          ? html`<div class="state" ui-column="gap-md x-center y-center"><p>${editError.value ?? t("App not found")}</p></div>`
           : !app.canEdit
             ? html`
-              <div class="state">
+              <div class="state" ui-column="gap-md x-center y-center">
                 <p ui-heading="sm">${t("You can only edit your own apps.")}</p>
                 <a href=${appPageUrl(lang, slug)} ui-button="primary">${t("Open app")}</a>
               </div>`
@@ -90,7 +115,7 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
 
 function EditWorkspace({ slug, creating }: { slug: string; creating: boolean }) {
   return html`
-    <div class="workspace">
+    <div class="workspace" ui-column>
       ${creating ? "" : html`<${ModeTabs} />`}
       ${editError.value ? html`<div class="error-banner">${editError.value}</div>` : ""}
       ${creating || editMode.value === "chat"
@@ -103,7 +128,7 @@ function EditWorkspace({ slug, creating }: { slug: string; creating: boolean }) 
 function ModeTabs() {
   const mode = editMode.value;
   return html`
-    <div class="tabs" role="tablist">
+    <div class="tabs" role="tablist" ui-row="gap-xs" ui-padding="sm">
       <button
         type="button"
         role="tab"
@@ -169,18 +194,18 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
   }
 
   return html`
-    <div class="chat">
-      <div class="messages" ref=${listRef}>
+    <div class="chat" ui-column>
+      <div class="messages" ref=${listRef} ui-column="gap-sm" ui-padding="md">
         ${displayMessages.length === 0 && !sending
           ? html`
-            <div class="chat-empty">
+            <div class="chat-empty" ui-column="gap-xs x-center">
               <span class="chat-empty-icon" aria-hidden="true">💬</span>
               <p ui-heading="sm">${t("Describe a change")}</p>
               <p>${t("Ask the AI to tweak your app — colors, features, wording, anything.")}</p>
             </div>`
           : displayMessages.map(
               (m) => html`
-                <div class=${m.role === "user" ? "msg user" : "msg assistant"}>
+                <div class=${m.role === "user" ? "msg user" : "msg assistant"} ui-column="gap-xs">
                   ${m.id === "original-prompt"
                     ? html`<p class="msg-label">${t("Original prompt")}</p>`
                     : ""}
@@ -189,7 +214,7 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
             )}
         ${sending
           ? html`
-            <div class="msg assistant">
+            <div class="msg assistant" ui-column="gap-xs">
               <div class="bubble typing">
                 ${creating ? t("AI is building your app.") : t("AI is updating your app…")}
               </div>
@@ -197,7 +222,7 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
           : ""}
       </div>
 
-      <form class="composer" onSubmit=${submit}>
+      <form class="composer" ui-row="gap-sm y-end" ui-padding="sm" onSubmit=${submit}>
         <textarea
           class="composer-input"
           rows="2"
@@ -233,7 +258,7 @@ function CodePanel({ slug }: { slug: string }) {
   const highlighted = highlightJavaScript(codeDraft.value);
 
   return html`
-    <div class="code">
+    <div class="code" ui-column>
       <div class="code-editor">
         <pre class="code-highlight" ref=${highlightRef} aria-hidden="true">
           ${h("code", { dangerouslySetInnerHTML: { __html: `${highlighted}\n` } })}
@@ -249,10 +274,10 @@ function CodePanel({ slug }: { slug: string }) {
           onScroll=${syncScroll}
         ></textarea>
       </div>
-      <div class="code-actions">
+      <div class="code-actions" ui-row="gap-sm x-end" ui-padding="sm">
         <button
           type="button"
-          ui-button="secondary sm"
+          ui-button="tertiary sm"
           disabled=${!dirty || saving}
           onClick=${() => app && (codeDraft.value = app.config.code)}
         >
@@ -277,43 +302,21 @@ function style() {
       & {
         position: fixed;
         inset: 0;
-        display: flex;
-        flex-direction: column;
         background: var(--neutral-100);
       }
 
       .topbar {
         flex: none;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
         height: 3.25rem;
-        padding-inline: 1rem;
         background: var(--white);
         border-bottom: 1px solid var(--neutral-200);
-      }
-
-      .topbar .back,
-      .topbar .open {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        color: var(--neutral-700);
-        text-decoration: none;
-        padding: 0.375rem 0.625rem;
-        border-radius: 0.5rem;
-      }
-
-      .topbar .back:hover,
-      .topbar .open:hover {
-        background: var(--neutral-100);
       }
 
       .topbar .open.disabled {
         color: var(--neutral-400);
         pointer-events: none;
+        font-size: 0.875rem;
+        padding: 0.375rem 0.625rem;
       }
 
       .topbar .title {
@@ -332,14 +335,13 @@ function style() {
         color: var(--primary-700);
       }
 
+      .topbar .delete {
+        color: var(--danger, #c00);
+        flex-shrink: 0;
+      }
+
       .draft-banner {
         flex: none;
-        display: flex;
-        flex-wrap: wrap;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.75rem;
-        padding: 0.75rem 1rem;
         background: oklch(from var(--primary-100) l c h / 80%);
         border-bottom: 1px solid var(--primary-200);
         color: var(--neutral-800);
@@ -354,42 +356,19 @@ function style() {
 
       .state {
         flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
         color: var(--neutral-600);
         text-align: center;
         padding: 2rem;
       }
 
-      .spinner {
-        width: 1.5rem;
-        height: 1.5rem;
-        border: 2px solid var(--neutral-300);
-        border-top-color: var(--primary-600);
-        border-radius: 50%;
-        animation: appedit-spin 0.7s linear infinite;
-      }
-
-      @keyframes appedit-spin {
-        to { transform: rotate(360deg); }
-      }
-
       .workspace {
         flex: 1;
         min-height: 0;
-        display: flex;
-        flex-direction: column;
         background: var(--white);
       }
 
       .tabs {
         flex: none;
-        display: flex;
-        gap: 0.25rem;
-        padding: 0.5rem;
         background: var(--neutral-100);
         border-bottom: 1px solid var(--neutral-200);
       }
@@ -425,18 +404,12 @@ function style() {
       .chat {
         flex: 1;
         min-height: 0;
-        display: flex;
-        flex-direction: column;
       }
 
       .messages {
         flex: 1;
         min-height: 0;
         overflow-y: auto;
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.625rem;
       }
 
       .chat-empty {
@@ -444,19 +417,10 @@ function style() {
         text-align: center;
         color: var(--neutral-500);
         max-width: 20rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.375rem;
       }
 
       .chat-empty-icon {
         font-size: 1.75rem;
-      }
-
-      .msg {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
       }
 
       .msg.user {
@@ -501,10 +465,6 @@ function style() {
 
       .composer {
         flex: none;
-        display: flex;
-        gap: 0.5rem;
-        align-items: flex-end;
-        padding: 0.75rem;
         border-top: 1px solid var(--neutral-200);
         background: var(--white);
       }
@@ -529,8 +489,6 @@ function style() {
       .code {
         flex: 1;
         min-height: 0;
-        display: flex;
-        flex-direction: column;
         background: #1e1e1e;
       }
 
@@ -594,10 +552,6 @@ function style() {
 
       .code-actions {
         flex: none;
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-        padding: 0.75rem;
         border-top: 1px solid var(--neutral-800);
         background: #1e1e1e;
       }

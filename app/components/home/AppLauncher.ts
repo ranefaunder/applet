@@ -1,9 +1,8 @@
 import { html, css } from "/utils/markup";
 import { useEffect, useState } from "preact/hooks";
 import { t } from "/utils/i18n";
-import { apps, loadApps, clearApps, deleteApp } from "/app/stores/appStore";
+import { apps, loadApps, clearApps } from "/app/stores/appStore";
 import { isLoggedIn, user } from "/app/stores/userStore";
-import type { AppSummary } from "/types/app-types";
 import AppIcon from "/app/components/home/AppIcon";
 import DraftIcon from "/app/components/home/DraftIcon";
 
@@ -28,22 +27,16 @@ export default function AppLauncher() {
     if (!hasApps) setEditing(false);
   }, [hasApps]);
 
-  function requestDelete(app: AppSummary) {
-    const ok = window.confirm(t("Delete \"$title\"? This cannot be undone.", { title: app.title }));
-    if (!ok) return;
-    void deleteApp(app.slug);
-  }
-
   const view = html`
-    <div data-scope="AppLauncher">
-      <section class="section">
-        <div class="section-header">
-          <h2 class="section-title">${t("My Applets")}</h2>
+    <div data-scope="AppLauncher" ui-column="gap-2xl" ui-margin="top-xl">
+      <section ui-column="gap-lg">
+        <div ui-row="x-between y-center gap-md">
+          <h2 ui-heading>${t("My Applets")}</h2>
           ${isLoggedIn() && hasApps
             ? html`
               <button
                 type="button"
-                class="edit-toggle"
+                ui-button="inline sm"
                 onClick=${() => setEditing((v) => !v)}
               >
                 ${editing ? t("Done") : t("Edit")}
@@ -53,7 +46,7 @@ export default function AppLauncher() {
 
         ${!isLoggedIn()
           ? html`
-            <div class="empty">
+            <div ui-card ui-column="gap-md x-center" ui-padding="block-3xl inline-xl" class="empty">
               <p ui-heading="sm">${t("Sign in to open your applets")}</p>
               <button
                 type="button"
@@ -66,28 +59,26 @@ export default function AppLauncher() {
           : html`
             <div class=${editing ? "grid editing" : "grid"}>
               ${readyApps.map(
-                (app) => html`<${AppIcon} app=${app} editing=${editing} onDelete=${requestDelete} />`,
+                (app) => html`<${AppIcon} app=${app} editing=${editing} />`,
               )}
             </div>
             ${readyApps.length === 0
               ? html`
-                <p class="hint">
+                <p class="hint" ui-margin="top-lg">
                   ${t("Use Create Applet to build your first app.")}
                 </p>`
               : editing
-                ? html`<p class="hint">${t("Tap an applet to edit it. Tap × to delete.")}</p>`
+                ? html`<p class="hint" ui-margin="top-lg">${t("Tap an applet to edit it.")}</p>`
                 : ""}`}
       </section>
 
       ${isLoggedIn() && draftApps.length > 0
         ? html`
-          <section class="section drafts">
-            <div class="section-header">
-              <h2 class="section-title">${t("Drafts")}</h2>
-            </div>
+          <section ui-column="gap-lg">
+            <h2 ui-heading>${t("Drafts")}</h2>
             <div class=${editing ? "grid editing" : "grid"}>
               ${draftApps.map(
-                (app) => html`<${DraftIcon} app=${app} editing=${editing} onDelete=${requestDelete} />`,
+                (app) => html`<${DraftIcon} app=${app} editing=${editing} />`,
               )}
             </div>
           </section>`
@@ -97,44 +88,6 @@ export default function AppLauncher() {
 
   const style = css`
     @scope ([data-scope="AppLauncher"]) to ([data-scope]) {
-      & {
-        margin-top: 2rem;
-      }
-
-      .section + .section {
-        margin-top: 2.5rem;
-      }
-
-      .section-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 1rem;
-        margin-bottom: 1.25rem;
-      }
-
-      .section-title {
-        font-size: 1.125rem;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        color: var(--neutral-900);
-      }
-
-      .edit-toggle {
-        border: none;
-        background: none;
-        padding: 0.25rem 0.125rem;
-        font: inherit;
-        font-size: 0.9375rem;
-        font-weight: 600;
-        color: var(--primary-600);
-        cursor: pointer;
-      }
-
-      .edit-toggle:hover {
-        color: var(--primary-700);
-      }
-
       .grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -142,22 +95,13 @@ export default function AppLauncher() {
       }
 
       .hint {
-        margin-top: 1.5rem;
         text-align: center;
         font-size: 0.875rem;
         color: var(--neutral-500);
       }
 
       .empty {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1rem;
-        padding: 3rem 1.5rem;
         text-align: center;
-        border: 1px solid var(--neutral-200);
-        border-radius: 1.25rem;
-        background: var(--white);
         color: var(--neutral-600);
       }
 

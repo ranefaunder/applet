@@ -23,7 +23,7 @@ export default function Layout({ children }: LayoutProps) {
   const hideFooter = isLauncherPath(path ?? "", lang);
 
   const view = html`
-    <div data-scope="Layout">
+    <div data-scope="Layout" ui-column>
       <${Header} />
       <main class="layout-main">
         ${children}
@@ -38,8 +38,6 @@ export default function Layout({ children }: LayoutProps) {
     @scope ([data-scope="Layout"]) to ([data-scope]) {
       & {
         min-height: 100%;
-        display: flex;
-        flex-direction: column;
       }
 
       .layout-main {

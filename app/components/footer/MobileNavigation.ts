@@ -23,10 +23,11 @@ export default function MobileNavigation() {
 
   const view = html`
     <nav data-scope="MobileNavigation" ui-container="sm" aria-label=${t("My Applets")}>
-      <div class="items">
+      <div class="items" ui-row="x-evenly y-stretch">
         <a
           class=${`item${isHomePath(path, lang) ? " active" : ""}`}
           href=${`/${lang}/`}
+          ui-column="gap-xs x-center y-center"
           aria-label=${t("My Applets")}
           aria-current=${isHomePath(path, lang) ? "page" : undefined}
         >
@@ -36,6 +37,7 @@ export default function MobileNavigation() {
         <a
           class=${`item${isCreatePath(path, lang) ? " active" : ""}`}
           href=${`/${lang}/create`}
+          ui-column="gap-xs x-center y-center"
           aria-label=${t("Create")}
           aria-current=${isCreatePath(path, lang) ? "page" : undefined}
         >
@@ -45,6 +47,7 @@ export default function MobileNavigation() {
         <a
           class=${`item${isSettingsPath(path, lang) ? " active" : ""}`}
           href=${`/${lang}/settings`}
+          ui-column="gap-xs x-center y-center"
           aria-label=${t("Settings")}
           aria-current=${isSettingsPath(path, lang) ? "page" : undefined}
         >
@@ -68,19 +71,7 @@ export default function MobileNavigation() {
         padding-bottom: env(safe-area-inset-bottom, 0);
       }
 
-      .items {
-        display: flex;
-        align-items: stretch;
-        justify-content: space-evenly;
-        margin-inline: auto;
-      }
-
       .item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 0.2rem;
         flex: 1;
         padding: 0.625rem 0.5rem 0.75rem;
         text-decoration: none;

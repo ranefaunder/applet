@@ -170,6 +170,7 @@ export const translations = {
   "Add": { fi: "Lisää" },
   "Delete entry": { fi: "Poista merkintä" },
   "Delete": { fi: "Poista" },
+  "Deleting…": { fi: "Poistetaan…" },
   "App not found": { fi: "Appia ei löydy" },
   "Could not save entry. Try again.": { fi: "Merkinnän tallennus epäonnistui. Yritä uudelleen." },
   "Open app": { fi: "Avaa app" },
@@ -178,11 +179,7 @@ export const translations = {
   "Done": { fi: "Valmis" },
   "Edit $title": { fi: "Muokkaa: $title" },
   "Open $title": { fi: "Avaa: $title" },
-  "Delete $title": { fi: "Poista: $title" },
   "Tap an applet to edit it.": { fi: "Napauta applettia muokataksesi sitä." },
-  "Tap an applet to edit it. Tap × to delete.": {
-    fi: "Napauta applettia muokataksesi. Napauta × poistaaksesi.",
-  },
   "Delete \"$title\"? This cannot be undone.": {
     fi: "Poistetaanko \"$title\"? Tätä ei voi perua.",
   },

@@ -16,18 +16,24 @@ export default function Header() {
   }
 
   const view = html`
-    <header ui-container="lg" class="app-header" data-scope="Header">
-      <a href=${`/${lang}/`} class="logo" aria-label="Applet">
+    <header
+      ui-container="lg"
+      ui-row="x-between y-center gap-xl"
+      ui-padding="block-sm"
+      class="app-header"
+      data-scope="Header"
+    >
+      <a href=${`/${lang}/`} class="logo" ui-row="gap-sm y-center" aria-label="Applet">
         <span class="logo-icon" aria-hidden="true">
           <span class="logo-icon-letter faunder-logo-font">A</span>
         </span>
         <span class="logo-text faunder-logo-font">Applet</span>
       </a>
-      <nav class="navigation">
+      <nav class="navigation" ui-row="gap-lg y-center">
         <a href="/${lang}/" ui-button="inline">${t("My Applets")}</a>
         <a href="/${lang}/create" ui-button="inline">${t("Create")}</a>
       </nav>
-      <div class="user-actions">
+      <div class="user-actions" ui-row="gap-sm y-center">
         <div ui-menu="bottom-left" ui-row>
           <button class="language-button" popovertarget="header-lang-menu" aria-label="Language" ui-button="inline sm" ui-icon="globe">
             ${lang}
@@ -48,14 +54,14 @@ export default function Header() {
 
         ${isLoggedIn()
           ? html`
-            <a href=${`/${lang}/settings`} ui-button="inline sm" class="settings-link">
+            <a href=${`/${lang}/settings`} ui-button="inline sm" class="desktop-only">
               ${t("Settings")}
             </a>`
           : html`
-            <button type="button" ui-button="inline sm" class="login-button" commandfor="login-dialog" command="show-modal">
+            <button type="button" ui-button="inline sm" class="desktop-only" commandfor="login-dialog" command="show-modal">
               ${t("Login")}
             </button>
-            <button type="button" ui-button="primary sm" class="register-button" commandfor="register-dialog" command="show-modal">
+            <button type="button" ui-button="primary sm" class="desktop-only" commandfor="register-dialog" command="show-modal">
               ${t("Register")}
             </button>`}
       </div>
@@ -65,32 +71,15 @@ export default function Header() {
   const style = css`
     @scope ([data-scope="Header"]) to ([data-scope]) {
       & {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 2rem;
-        padding-block: 0.75rem;
         z-index: 100;
       }
 
-      .navigation {
-        display: none;
-        align-items: center;
-        flex-grow: 1;
-        gap: 1.5rem;
-      }
-
       .navigation,
-      .settings-link,
-      .login-button,
-      .register-button {
+      .desktop-only {
         display: none;
       }
 
       .logo {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
         flex-shrink: 0;
         color: inherit;
         text-decoration: none;
@@ -124,26 +113,17 @@ export default function Header() {
         box-shadow: 0 2px 6px oklch(from var(--primary-900) l c h / 28%);
       }
 
-      .user-actions {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-
       .language-button {
         text-transform: uppercase;
-        font-size: 0.875rem;
-        font-weight: 500;
       }
 
       @media (min-width: 800px) {
         .navigation {
           display: flex;
+          flex-grow: 1;
         }
 
-        .settings-link,
-        .login-button,
-        .register-button {
+        .desktop-only {
           display: inline-flex;
         }
 

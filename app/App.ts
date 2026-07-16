@@ -56,7 +56,7 @@ export default function App() {
       <${ErrorBoundary}
         onError=${(error: unknown) => console.error("App error:", error)}
       >
-        <div data-scope="App">
+        <div data-scope="App" ui-column>
           <${Router}>
             <${Route} path=${CreatePath} component=${Create} />
             <${Route} path=${MyAppsPath} component=${withLayout(MyApps)} />
@@ -78,15 +78,11 @@ export default function App() {
     @scope ([data-scope="App"]) to ([data-scope]) {
       & {
         min-height: 100dvh;
-        display: flex;
-        flex-direction: column;
       }
     }
 
     [data-scope="App"] [data-scope="Layout"] {
       flex-grow: 1;
-      display: flex;
-      flex-direction: column;
       min-height: 0;
     }
   `;

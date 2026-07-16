@@ -31,22 +31,22 @@ export default function Settings({ params }: RoutePropsForPath<typeof SettingsPa
   }
 
   const view = html`
-    <div data-scope="Settings" ui-container="sm">
+    <div data-scope="Settings" ui-container="sm" ui-padding="block-xl">
       <header ui-margin="bottom-md">
         <h1 ui-heading="lg">${t("Settings")}</h1>
       </header>
 
-      <section ui-card ui-padding="lg" ui-margin="bottom-lg">
-        <h2 ui-heading="sm" ui-margin="bottom-sm">Account</h2>
+      <section ui-card ui-padding="lg" ui-margin="bottom-lg" ui-column="gap-sm">
+        <h2 ui-heading="sm">Account</h2>
         <p>${user.value.email}</p>
         ${user.value.nickname ? html`<p class="nickname">${user.value.nickname}</p>` : ""}
-        <button type="button" ui-button="secondary" ui-margin="top-md" onClick=${handleLogout}>
+        <button type="button" ui-button="tertiary" ui-margin="top-sm" onClick=${handleLogout}>
           Log out
         </button>
       </section>
 
       <section ui-card ui-padding="lg">
-        <label ui-row="gap-sm">
+        <label ui-row="gap-sm y-center">
           <input
             type="checkbox"
             checked=${user.value.marketingOptIn === true}
@@ -60,10 +60,6 @@ export default function Settings({ params }: RoutePropsForPath<typeof SettingsPa
 
   const style = css`
     @scope ([data-scope="Settings"]) to ([data-scope]) {
-      & {
-        padding-block: 2rem;
-      }
-
       .nickname {
         color: var(--neutral-500);
         font-size: 0.875rem;

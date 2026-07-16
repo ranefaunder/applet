@@ -43,10 +43,10 @@ export default function Create(_props: RoutePropsForPath<typeof CreatePath>) {
   }, [lang, loggedIn]);
 
   const view = html`
-    <div data-scope="Create">
+    <div data-scope="Create" ui-column>
       ${!loggedIn
         ? html`
-          <div class="state">
+          <div class="state" ui-column="gap-md x-center y-center">
             <p ui-heading="sm">${t("Sign in to apply your ideas")}</p>
             <button
               type="button"
@@ -55,17 +55,17 @@ export default function Create(_props: RoutePropsForPath<typeof CreatePath>) {
             >
               ${t("Login")}
             </button>
-            <a class="back" href=${`/${lang}/`}>${t("My Applets")}</a>
+            <a href=${`/${lang}/`} ui-button="inline sm">${t("My Applets")}</a>
           </div>`
         : error
           ? html`
-            <div class="state">
+            <div class="state" ui-column="gap-md x-center y-center">
               <p>${error}</p>
               <a href=${`/${lang}/`} ui-button="primary">${t("My Applets")}</a>
             </div>`
           : html`
-            <div class="state">
-              <span class="spinner" aria-hidden="true"></span>
+            <div class="state" ui-column="gap-md x-center y-center">
+              <i ui-icon="spinner lg"></i>
               <p>${t("Starting chat…")}</p>
             </div>`}
       <${Dialogs} />
@@ -77,39 +77,14 @@ export default function Create(_props: RoutePropsForPath<typeof CreatePath>) {
       & {
         position: fixed;
         inset: 0;
-        display: flex;
-        flex-direction: column;
         background: var(--neutral-100);
       }
 
       .state {
         flex: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        gap: 1rem;
         padding: 2rem;
         text-align: center;
         color: var(--neutral-600);
-      }
-
-      .back {
-        color: var(--neutral-600);
-        font-size: 0.875rem;
-      }
-
-      .spinner {
-        width: 1.5rem;
-        height: 1.5rem;
-        border: 2px solid var(--neutral-300);
-        border-top-color: var(--primary-600);
-        border-radius: 50%;
-        animation: create-spin 0.7s linear infinite;
-      }
-
-      @keyframes create-spin {
-        to { transform: rotate(360deg); }
       }
     }
   `;
