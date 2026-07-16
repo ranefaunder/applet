@@ -40,7 +40,12 @@ export async function getMeta(req: BunRequest): Promise<string> {
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="${title}" />
     <meta name="twitter:description" content="${description}" />
-    <link rel="icon" href="${escapeHtmlAttribute(`${staticRoot}/favicons/favicon.ico`)}" />
+    <link rel="icon" href="${escapeHtmlAttribute(`${staticRoot}/favicons/favicon.ico`)}" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="${escapeHtmlAttribute(`${staticRoot}/favicons/favicon-32x32.png`)}" />
+    <link rel="icon" type="image/png" sizes="16x16" href="${escapeHtmlAttribute(`${staticRoot}/favicons/favicon-16x16.png`)}" />
+    <link rel="apple-touch-icon" sizes="180x180" href="${escapeHtmlAttribute(`${staticRoot}/favicons/apple-touch-icon.png`)}" />
+    <link rel="manifest" href="${escapeHtmlAttribute(`/${lang}/site.webmanifest`)}" />
+    <meta name="theme-color" content="#f4f2f8" />
     ${Object.keys(AVAILABLE_LANGUAGES).map((code) => {
       const rest = pathname.replace(/^\/[^/]+/, "") || "/";
       return `<link rel="alternate" hreflang="${code}" href="${escapeHtmlAttribute(`${origin}/${code}${rest === "/" ? "/" : rest}`)}" />`;
