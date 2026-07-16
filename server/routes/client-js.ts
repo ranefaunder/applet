@@ -8,6 +8,11 @@ export default async function (): Promise<Response> {
     /** resize-image.ts lataa sharpin vain palvelinpolulla; älä sido selainbundleen. */
     external: ["sharp"],
   });
-  return new Response(result.outputs[0]);
+  return new Response(result.outputs[0], {
+    headers: {
+      "Content-Type": "text/javascript; charset=utf-8",
+      "Cache-Control": "no-store",
+    },
+  });
 }
 
