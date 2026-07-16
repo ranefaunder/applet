@@ -3,7 +3,7 @@ import { isDraftConfig, parseAppConfig } from "/types/app-config-types";
 
 /**
  * Adds apps.is_draft for home-screen placement.
- * New apps stay in Drafts until promoted; existing ready apps stay in My Applets.
+ * New apps stay in Drafts until promoted; existing ready apps stay in My Apps.
  */
 export default function (db: Database) {
   db.run(`ALTER TABLE apps ADD COLUMN is_draft INTEGER NOT NULL DEFAULT 1`);

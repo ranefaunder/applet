@@ -125,8 +125,8 @@ export async function saveCode(slug: string): Promise<void> {
 
 export const editPublishing = signal(false);
 
-/** Promote a ready draft into My Applets on the home screen. */
-export async function publishToMyApplets(slug: string): Promise<boolean> {
+/** Promote a ready draft into My Apps on the home screen. */
+export async function publishToMyApps(slug: string): Promise<boolean> {
   if (editPublishing.value) return false;
   editError.value = null;
   editPublishing.value = true;

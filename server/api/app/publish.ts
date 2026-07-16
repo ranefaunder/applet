@@ -6,8 +6,10 @@ import { isDraftConfig, parseAppConfig, type AppDetail } from "/types/app-config
 import type { Language } from "/types/i18n-types";
 import { getLang } from "/utils/lang";
 import { t } from "/utils/i18n";
+import { generateAppIcon } from "/utils/ai-app-icons.server";
+import { getClientIP } from "/utils/request.server";
 
-/** Move a ready draft into My Applets (is_draft = 0). */
+/** Move a ready draft into My Apps (is_draft = 0) and generate a launcher icon. */
 export default {
   async POST(req: BunRequest) {
     return withAuth(req, async (user) => {
@@ -33,12 +35,21 @@ export default {
       if (!config || isDraftConfig(config)) {
         return apiError({
           code: "APP_NOT_READY",
-          message: t("Finish building the app before adding it to My Applets.", language),
+          message: t("Finish building the app before adding it to My Apps.", language),
           status: 409,
         });
       }
 
-      dbUpdateApp(row.id, { isDraft: false });
+      let iconId = row.icon_id ?? null;
+      if (!iconId) {
+        iconId = await generateAppIcon({
+          title: config.title,
+          description: config.description,
+          clientIP: getClientIP(req),
+        });
+      }
+
+      dbUpdateApp(row.id, { isDraft: false, iconId: iconId ?? undefined });
 
       const updated = dbGetAppBySlug(slug)!;
       const detail: AppDetail = {
@@ -51,6 +62,7 @@ export default {
         config,
         canEdit: true,
         isDraft: false,
+        iconId: updated.icon_id ?? null,
       };
 
       return apiSuccess({ data: { app: detail } });

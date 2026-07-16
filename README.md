@@ -20,5 +20,5 @@ Production: https://applet.faunder.fi — deploy with `./ops/deploy.sh` (server 
 - AI-generated personal apps (Web Components)
 - Local-first data storage in the browser
 - Edit mode with chat and code editor
-- My apps
+- My Apps
 - Multi-language support

@@ -27,11 +27,16 @@ export default function Header() {
         <span class="logo-icon" aria-hidden="true">
           <span class="logo-icon-letter faunder-logo-font">A</span>
         </span>
-        <span class="logo-text faunder-logo-font">Abblet</span>
+        <span class="logo-copy" ui-column="gap-xs">
+          <span class="logo-text faunder-logo-font">Applet</span>
+          <span class="logo-tagline">${t("Your apps evolve with your needs.")}</span>
+        </span>
       </a>
       <nav class="navigation" ui-row="gap-lg y-center">
-        <a href="/${lang}/" ui-button="inline">${t("My Applets")}</a>
+        <a href="/${lang}/" ui-button="inline">${t("Apps")}</a>
+        <a href="/${lang}/edit" ui-button="inline">${t("Edit")}</a>
         <a href="/${lang}/create" ui-button="inline">${t("Create")}</a>
+        <a href="/${lang}/settings" ui-button="inline">${t("Settings")}</a>
       </nav>
       <div class="user-actions" ui-row="gap-sm y-center">
         <div ui-menu="bottom-left" ui-row>
@@ -53,10 +58,7 @@ export default function Header() {
         </div>
 
         ${isLoggedIn()
-          ? html`
-            <a href=${`/${lang}/settings`} ui-button="inline sm" class="desktop-only">
-              ${t("Settings")}
-            </a>`
+          ? ""
           : html`
             <button type="button" ui-button="inline sm" class="desktop-only" commandfor="login-dialog" command="show-modal">
               ${t("Login")}
@@ -83,29 +85,46 @@ export default function Header() {
         flex-shrink: 0;
         color: inherit;
         text-decoration: none;
+        min-width: 0;
       }
 
       .logo-icon {
+        flex-shrink: 0;
         display: grid;
         place-items: center;
-        width: 1.75rem;
-        height: 1.75rem;
-        border-radius: 0.4375rem;
+        width: 2.25rem;
+        height: 2.25rem;
+        border-radius: 0.5rem;
         background: linear-gradient(145deg, var(--primary-500), var(--primary-700));
         box-shadow: 0 1px 2px oklch(from var(--primary-900) l c h / 22%);
         transition: transform 0.15s ease, box-shadow 0.15s ease;
       }
 
       .logo-icon-letter {
-        font-size: 1rem;
+        font-size: 1.125rem;
         line-height: 1;
         color: var(--white);
+      }
+
+      .logo-copy {
+        min-width: 0;
       }
 
       .logo-text {
         font-size: 1.375rem;
         line-height: 1;
         letter-spacing: -0.035em;
+      }
+
+      .logo-tagline {
+        font-size: 0.6875rem;
+        font-weight: 500;
+        line-height: 1.2;
+        color: var(--neutral-500);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 12rem;
       }
 
       .logo:hover .logo-icon {
@@ -128,17 +147,22 @@ export default function Header() {
         }
 
         .logo-icon {
-          width: 2rem;
-          height: 2rem;
-          border-radius: 0.5rem;
+          width: 2.5rem;
+          height: 2.5rem;
+          border-radius: 0.5625rem;
         }
 
         .logo-icon-letter {
-          font-size: 1.125rem;
+          font-size: 1.25rem;
         }
 
         .logo-text {
           font-size: 1.75rem;
+        }
+
+        .logo-tagline {
+          font-size: 0.75rem;
+          max-width: 18rem;
         }
       }
     }

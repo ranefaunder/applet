@@ -1,5 +1,3 @@
-const PREVIEW_EMOJIS = ["📱", "✨", "🎯", "📋", "🧩", "⚡", "🎨", "🔧", "📊", "🎮"];
-
 const PREVIEW_GRADIENTS = [
   "linear-gradient(145deg, var(--primary-400), var(--primary-700))",
   "linear-gradient(145deg, oklch(72% 0.14 230), oklch(52% 0.16 260))",
@@ -25,10 +23,7 @@ function accentIndex(slug: string, count: number): number {
   return hash % count;
 }
 
-export function previewEmoji(slug: string): string {
-  return PREVIEW_EMOJIS[accentIndex(slug, PREVIEW_EMOJIS.length)] ?? "📱";
-}
-
+/** Fallback fill when no AI icon yet. */
 export function previewGradient(slug: string): string {
   return PREVIEW_GRADIENTS[accentIndex(slug, PREVIEW_GRADIENTS.length)] ?? PREVIEW_GRADIENTS[0]!;
 }
@@ -38,6 +33,6 @@ export function draftAccentColor(slug: string): string {
 }
 
 export function draftLetter(title: string): string {
-  const match = title.match(/[A-Za-zÀ-ÖØ-öø-ÿ0-9]/);
-  return (match?.[0] ?? "A").toUpperCase();
+  const letter = title.trim().charAt(0).toUpperCase();
+  return letter || "?";
 }

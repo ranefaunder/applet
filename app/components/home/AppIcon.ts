@@ -3,35 +3,34 @@ import type { AppSummary } from "/types/app-types";
 import { useLocation } from "preact-iso";
 import { getLang } from "/utils/lang";
 import { t } from "/utils/i18n";
-import { appPageUrl, appEditUrl } from "/utils/app-url";
-import { previewEmoji, previewGradient } from "/utils/app-preview";
+import { appPageUrl } from "/utils/app-url";
+import { appIconSrc } from "/utils/app-icon";
+import { previewGradient, draftLetter } from "/utils/app-preview";
 
 type Props = {
   app: AppSummary;
-  editing?: boolean;
 };
 
-export default function AppIcon({ app, editing = false }: Props) {
+export default function AppIcon({ app }: Props) {
   const { path } = useLocation();
   const lang = getLang(path ?? "") ?? "en";
-  const emoji = previewEmoji(app.slug);
+  const iconSrc = appIconSrc(app.iconId);
   const gradient = previewGradient(app.slug);
-  const href = editing ? appEditUrl(lang, app.slug) : appPageUrl(lang, app.slug);
-  const label = editing
-    ? t("Edit $title", { title: app.title })
-    : t("Open $title", { title: app.title });
+  const letter = draftLetter(app.title);
 
   const view = html`
     <a
-      class=${editing ? "app-icon editing" : "app-icon"}
+      class="app-icon"
       data-scope="AppIcon"
       ui-column="gap-sm x-center"
-      href=${href}
-      aria-label=${label}
+      href=${appPageUrl(lang, app.slug)}
+      aria-label=${t("Open $title", { title: app.title })}
       style=${{ "--icon-gradient": gradient }}
     >
       <span class="glyph-wrap">
-        <span class="glyph" aria-hidden="true">${emoji}</span>
+        ${iconSrc
+          ? html`<img class="glyph-img" src=${iconSrc} alt="" width="128" height="128" decoding="async" />`
+          : html`<span class="glyph" aria-hidden="true">${letter}</span>`}
       </span>
       <span class="label">${app.title}</span>
     </a>
@@ -50,58 +49,45 @@ export default function AppIcon({ app, editing = false }: Props) {
         aspect-ratio: 1;
       }
 
-      .glyph {
+      .glyph,
+      .glyph-img {
         display: grid;
         place-items: center;
         width: 100%;
         height: 100%;
         border-radius: 22.5%;
-        background: var(--icon-gradient);
-        font-size: clamp(1.5rem, 6vw, 2rem);
-        line-height: 1;
         box-shadow:
           0 1px 2px oklch(from var(--neutral-900) l c h / 8%),
           0 8px 20px -10px oklch(from var(--primary-900) l c h / 35%);
         transition: transform 0.15s ease, box-shadow 0.15s ease;
       }
 
-      &:not(.editing):hover .glyph,
-      &:not(.editing):focus-visible .glyph {
+      .glyph {
+        background: var(--icon-gradient);
+        font-size: clamp(1.25rem, 5vw, 1.75rem);
+        font-weight: 700;
+        line-height: 1;
+        color: var(--white);
+      }
+
+      .glyph-img {
+        object-fit: cover;
+        background: var(--neutral-200);
+      }
+
+      &:hover .glyph,
+      &:hover .glyph-img,
+      &:focus-visible .glyph,
+      &:focus-visible .glyph-img {
         transform: scale(1.04);
         box-shadow:
           0 2px 4px oklch(from var(--neutral-900) l c h / 10%),
           0 12px 28px -12px oklch(from var(--primary-900) l c h / 40%);
       }
 
-      &:not(.editing):active .glyph {
+      &:active .glyph,
+      &:active .glyph-img {
         transform: scale(0.96);
-      }
-
-      &.editing .glyph-wrap {
-        animation: applet-jiggle 0.28s ease-in-out infinite;
-        transform-origin: 50% 60%;
-      }
-
-      &.editing:nth-child(even) .glyph-wrap {
-        animation-delay: -0.14s;
-        animation-direction: reverse;
-      }
-
-      &.editing:nth-child(3n) .glyph-wrap {
-        animation-duration: 0.32s;
-        animation-delay: -0.07s;
-      }
-
-      @keyframes applet-jiggle {
-        0% { transform: rotate(-2.8deg); }
-        50% { transform: rotate(2.8deg); }
-        100% { transform: rotate(-2.8deg); }
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        &.editing .glyph-wrap {
-          animation: none;
-        }
       }
 
       .label {

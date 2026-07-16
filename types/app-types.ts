@@ -25,4 +25,6 @@ export interface AppSummary {
   remixCount: number;
   updatedAt: string;
   isDraft: boolean;
+  /** File id under /static/app-icons/{iconId}.webp */
+  iconId: string | null;
 }

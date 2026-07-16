@@ -12,6 +12,7 @@ export const appConfigSchema = z.object({
   prompt: z.string(),
   title: z.string().min(1),
   description: z.string(),
+  /** @deprecated Launcher uses AI-generated icon files; kept for older configs. */
   emoji: z.string().max(8).optional(),
   /** Custom element -nimi, esim. "run-log". Pakollinen väliviiva. */
   tagName: z.string().regex(/^[a-z][a-z0-9]*(-[a-z0-9]+)+$/),
@@ -30,8 +31,10 @@ export type AppDetail = {
   ownerId: string;
   config: AppConfig;
   canEdit: boolean;
-  /** Home-screen placement: true = Drafts, false = My Applets */
+  /** Home-screen placement: true = Drafts, false = My Apps */
   isDraft: boolean;
+  /** File id under /static/app-icons/{iconId}.webp */
+  iconId: string | null;
 };
 
 export type AppEditRole = "user" | "assistant";

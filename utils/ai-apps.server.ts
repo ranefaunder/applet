@@ -4,13 +4,15 @@ import { appConfigSchema, type AppConfig, type AppEditMessage } from "/types/app
 import type { Language } from "/types/i18n-types";
 import { AVAILABLE_LANGUAGES } from "/i18n/languages";
 
-const aiAppSchema = appConfigSchema.omit({ version: true, status: true, prompt: true });
+const aiAppSchema = appConfigSchema.omit({ version: true, status: true, prompt: true, emoji: true });
 
 const aiEditSchema = z.object({
   summary: z.string().min(1),
   title: z.string().min(1).max(80).optional(),
   description: z.string().optional(),
   code: z.string().min(1),
+  /** True when the app's visual identity / purpose changed enough to warrant a new launcher icon. */
+  needsNewIcon: z.boolean().optional(),
 });
 
 /** Shared design + architecture guidelines used by both create and edit flows. */
@@ -170,7 +172,6 @@ export async function generateAppConfig(prompt: string, language: Language): Pro
 Return one JSON object with:
 - title: short app name (max 60 chars), not the raw user prompt
 - description: 1-2 sentences describing what the app does
-- emoji: one relevant emoji
 - tagName: valid custom element name, lowercase with at least one hyphen (e.g. "run-log", "wine-journal")
 - code: complete JavaScript that registers the custom element
 
@@ -205,7 +206,7 @@ export async function editAppConfig(opts: {
   history: AppEditMessage[];
   instruction: string;
   language: Language;
-}): Promise<{ config: AppConfig; summary: string } | null> {
+}): Promise<{ config: AppConfig; summary: string; needsNewIcon: boolean } | null> {
   const { current, history, instruction, language } = opts;
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
 
@@ -218,6 +219,7 @@ Return one JSON object with:
 - title: (optional) updated short app name, only if the change warrants it
 - description: (optional) updated 1-2 sentence description, only if it changed
 - code: the complete, updated JavaScript that registers the custom element
+- needsNewIcon: boolean — set true when the app's purpose, theme, or visual identity changed enough that the home-screen icon should be regenerated (e.g. renamed to a different concept, new primary theme, user asked for a new icon). Set false for bugfixes, small UI tweaks, copy edits, or unrelated feature tweaks.
 
 ## Hard constraints
 - Keep the EXACT same custom element tagName: "${current.tagName}". The code must still call customElements.define("${current.tagName}", ...). Do NOT rename it.
@@ -270,5 +272,9 @@ Return the complete updated code and a short summary of what you changed.`;
     description: generated.description?.trim() || current.description,
   };
 
-  return { config, summary: generated.summary.trim() };
+  return {
+    config,
+    summary: generated.summary.trim(),
+    needsNewIcon: generated.needsNewIcon === true,
+  };
 }

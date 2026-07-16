@@ -51,6 +51,7 @@ function getInitialApp(req: BunRequest, user: AuthenticatedUser | null): AppDeta
     config,
     canEdit: user?.id === row.owner_id,
     isDraft: row.is_draft === 1,
+    iconId: row.icon_id ?? null,
   };
 }
 
@@ -60,8 +61,8 @@ function getInitialApps(req: BunRequest, initialUser: AuthenticatedUser | null) 
   const parts = new URL(req.url).pathname.split("/").filter(Boolean);
   const segment = parts[1];
 
-  // Home launcher (/:lang or /:lang/) and legacy /apps both need the app list.
-  if (segment === undefined || segment === "apps") {
+  // Home launcher, edit list, and legacy /apps need the app list.
+  if (segment === undefined || segment === "apps" || segment === "edit") {
     return dbListUserApps(initialUser.id);
   }
   return undefined;

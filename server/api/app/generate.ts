@@ -44,7 +44,7 @@ export default {
         });
       }
 
-      const title = t("New Applet", language);
+      const title = t("New App", language);
       const config = buildEmptyDraftConfig(title);
       const id = crypto.randomUUID();
       const slug = dbGenerateAppSlug();

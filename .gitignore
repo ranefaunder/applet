@@ -41,6 +41,7 @@ sqlite.db
 server/database/app.db
 
 /static/recipes/*.webp
+/static/app-icons/*.webp
 /static/books
 /backup
 /server/database/backup

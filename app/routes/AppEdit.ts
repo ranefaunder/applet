@@ -22,7 +22,7 @@ import {
   loadEdit,
   sendChatMessage,
   saveCode,
-  publishToMyApplets,
+  publishToMyApps,
 } from "/app/stores/appEditStore";
 
 export const AppEditPath = "/:lang/app/:slug/edit" as const;
@@ -57,8 +57,8 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
   const view = html`
     <div data-scope="AppEdit" ui-column>
       <header class="topbar" ui-row="y-center gap-md" ui-padding="inline-md">
-        <a class="back" href=${`/${lang}/`} ui-button="inline sm" aria-label=${t("My Applets")}>
-          <span aria-hidden="true">‹</span> ${t("My Applets")}
+        <a class="back" href=${`/${lang}/edit`} ui-button="inline sm" aria-label=${t("My Apps")}>
+          <span aria-hidden="true">‹</span> ${t("My Apps")}
         </a>
         <div class="title" title=${app?.title ?? ""}>${app?.title ?? t("Editor")}</div>
         ${app?.canEdit
@@ -84,14 +84,14 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
       ${canAddToHome
         ? html`
           <div class="draft-banner" ui-row="wrap y-center x-between gap-sm" ui-padding="md">
-            <p>${t("This app is still a draft. Add it to My Applets when you're ready.")}</p>
+            <p>${t("This app is still a draft. Add it to My Apps when you're ready.")}</p>
             <button
               type="button"
               ui-button="primary sm"
               disabled=${publishing}
-              onClick=${() => void publishToMyApplets(slug)}
+              onClick=${() => void publishToMyApps(slug)}
             >
-              ${publishing ? t("Adding…") : t("Add to My Applets")}
+              ${publishing ? t("Adding…") : t("Add to My Apps")}
             </button>
           </div>`
         : ""}

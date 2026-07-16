@@ -56,6 +56,7 @@ export default {
         config,
         canEdit: true,
         isDraft: updated.is_draft === 1,
+        iconId: updated.icon_id ?? null,
       };
 
       return apiSuccess({ data: { app: detail } });

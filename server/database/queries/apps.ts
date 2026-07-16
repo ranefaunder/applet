@@ -14,6 +14,7 @@ type AppRow = {
   updated_at: string;
   published_at: string | null;
   is_draft: number;
+  icon_id: string | null;
   owner_nickname?: string | null;
   remix_count?: number;
 };
@@ -30,6 +31,7 @@ function toSummary(row: AppRow): AppSummary {
     remixCount: row.remix_count ?? 0,
     updatedAt: row.updated_at,
     isDraft: row.is_draft === 1,
+    iconId: row.icon_id ?? null,
   };
 }
 
@@ -128,12 +130,39 @@ export function dbGenerateAppSlug(): string {
 
 export const isNumericAppSlug = (slug: string): boolean => /^\d{5,}$/.test(slug);
 
-export const dbUpdateApp = (id: string, data: { title?: string; description?: string; configJson?: string; isDraft?: boolean }) => {
+export const dbUpdateApp = (
+  id: string,
+  data: {
+    title?: string;
+    description?: string;
+    configJson?: string;
+    isDraft?: boolean;
+    iconId?: string | null;
+  },
+) => {
   const now = new Date().toISOString();
   const title = data.title;
   const description = data.description;
   const configJson = data.configJson;
   const isDraft = data.isDraft === undefined ? null : data.isDraft ? 1 : 0;
+  const hasIcon = data.iconId !== undefined;
+  const iconId = data.iconId ?? null;
+
+  if (hasIcon) {
+    return db
+      .query(`
+        UPDATE apps
+        SET title = COALESCE(?, title),
+            description = COALESCE(?, description),
+            config_json = COALESCE(?, config_json),
+            is_draft = COALESCE(?, is_draft),
+            icon_id = ?,
+            updated_at = ?
+        WHERE id = ?
+      `)
+      .run(title ?? null, description ?? null, configJson ?? null, isDraft, iconId, now, id);
+  }
+
   return db
     .query(`
       UPDATE apps

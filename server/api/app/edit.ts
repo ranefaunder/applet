@@ -4,6 +4,7 @@ import { apiError, apiSuccess } from "/utils/api.server";
 import { dbGetAppBySlug, dbUpdateApp } from "/server/database/queries/apps";
 import { dbAddAppMessage, dbListAppMessages } from "/server/database/queries/app-messages";
 import { editAppConfig, generateAppConfig } from "/utils/ai-apps.server";
+import { generateAppIcon } from "/utils/ai-app-icons.server";
 import { apiErrorFromAi } from "/utils/ai-api.server";
 import { isDraftConfig, parseAppConfig, type AppConfig, type AppDetail } from "/types/app-config-types";
 import type { Language } from "/types/i18n-types";
@@ -26,6 +27,7 @@ function toDetail(
     config,
     canEdit: true,
     isDraft: row.is_draft === 1,
+    iconId: row.icon_id ?? null,
   };
 }
 
@@ -73,6 +75,7 @@ export default {
 
       let nextConfig: AppConfig;
       let assistantReply: string;
+      let needsNewIcon = false;
 
       if (creating) {
         let config;
@@ -113,6 +116,16 @@ export default {
         }
         nextConfig = result.config;
         assistantReply = result.summary;
+        needsNewIcon = result.needsNewIcon;
+      }
+
+      let iconId: string | null | undefined;
+      if (needsNewIcon) {
+        iconId = await generateAppIcon({
+          title: nextConfig.title,
+          description: nextConfig.description,
+          clientIP,
+        });
       }
 
       dbUpdateApp(row.id, {
@@ -121,6 +134,7 @@ export default {
         configJson: JSON.stringify(nextConfig),
         // Stay in Drafts on the home screen after first build.
         isDraft: creating ? true : undefined,
+        ...(iconId ? { iconId } : {}),
       });
 
       dbAddAppMessage({ id: crypto.randomUUID(), appId: row.id, role: "user", content: message });

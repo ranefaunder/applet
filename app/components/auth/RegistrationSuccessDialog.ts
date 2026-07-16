@@ -32,7 +32,7 @@ export default function RegistrationSuccessDialog() {
             route(`/${lang}/create`, true);
           }}
         >
-          ${t("Create Applet")}
+          ${t("Create App")}
         </button>
       </footer>
     </dialog>

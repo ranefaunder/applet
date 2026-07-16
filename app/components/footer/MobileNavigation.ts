@@ -8,6 +8,10 @@ function isHomePath(path: string, lang: string): boolean {
   return normalized === `/${lang}` || normalized === "";
 }
 
+function isEditPath(path: string, lang: string): boolean {
+  return path.includes(`/${lang}/edit`) && !path.includes("/app/");
+}
+
 function isCreatePath(path: string, lang: string): boolean {
   return path.includes(`/${lang}/create`);
 }
@@ -22,17 +26,27 @@ export default function MobileNavigation() {
   const lang = getLang(path) ?? "en";
 
   const view = html`
-    <nav data-scope="MobileNavigation" ui-container="sm" aria-label=${t("My Applets")}>
+    <nav data-scope="MobileNavigation" ui-container="sm" aria-label=${t("Apps")}>
       <div class="items" ui-row="x-evenly y-stretch">
         <a
           class=${`item${isHomePath(path, lang) ? " active" : ""}`}
           href=${`/${lang}/`}
           ui-column="gap-xs x-center y-center"
-          aria-label=${t("My Applets")}
+          aria-label=${t("Apps")}
           aria-current=${isHomePath(path, lang) ? "page" : undefined}
         >
           <i ui-icon="bookmarks xl"></i>
-          <span class="label">${t("My Applets")}</span>
+          <span class="label">${t("Apps")}</span>
+        </a>
+        <a
+          class=${`item${isEditPath(path, lang) ? " active" : ""}`}
+          href=${`/${lang}/edit`}
+          ui-column="gap-xs x-center y-center"
+          aria-label=${t("Edit")}
+          aria-current=${isEditPath(path, lang) ? "page" : undefined}
+        >
+          <i ui-icon="pencil xl"></i>
+          <span class="label">${t("Edit")}</span>
         </a>
         <a
           class=${`item${isCreatePath(path, lang) ? " active" : ""}`}
@@ -73,7 +87,7 @@ export default function MobileNavigation() {
 
       .item {
         flex: 1;
-        padding: 0.625rem 0.5rem 0.75rem;
+        padding: 0.625rem 0.25rem 0.75rem;
         text-decoration: none;
         color: var(--neutral-500);
       }

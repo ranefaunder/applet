@@ -30,6 +30,7 @@ function buildAppDetail(
     config,
     canEdit: isOwner,
     isDraft: row.is_draft === 1,
+    iconId: row.icon_id ?? null,
   };
 }
 

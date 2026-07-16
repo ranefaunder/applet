@@ -21,17 +21,20 @@ export const translations = {
   "Apply It": {
     fi: "Toteuta se",
   },
-  "My apps": {
+  "My Apps": {
     fi: "Omat appit",
   },
-  "My Applets": {
-    fi: "Omat appletit",
+  "Apps": {
+    fi: "Appit",
   },
-  "Create Applet": {
-    fi: "Luo Applet",
+  "Draft": {
+    fi: "Luonnos",
   },
-  "New Applet": {
-    fi: "Uusi Applet",
+  "Create App": {
+    fi: "Luo app",
+  },
+  "New App": {
+    fi: "Uusi app",
   },
   "Drafts": {
     fi: "Luonnokset",
@@ -39,17 +42,17 @@ export const translations = {
   "Starting chat…": {
     fi: "Avataan keskustelua…",
   },
-  "Add to My Applets": {
-    fi: "Lisää omiin appleteihin",
+  "Add to My Apps": {
+    fi: "Lisää omiin appeihin",
   },
   "Adding…": {
     fi: "Lisätään…",
   },
-  "This app is still a draft. Add it to My Applets when you're ready.": {
-    fi: "Tämä app on vielä luonnos. Lisää se omiin appleteihin kun olet valmis.",
+  "This app is still a draft. Add it to My Apps when you're ready.": {
+    fi: "Tämä app on vielä luonnos. Lisää se omiin appeihin kun olet valmis.",
   },
-  "Finish building the app before adding it to My Applets.": {
-    fi: "Viimeistele app ennen kuin lisäät sen omiin appleteihin.",
+  "Finish building the app before adding it to My Apps.": {
+    fi: "Viimeistele app ennen kuin lisäät sen omiin appeihin.",
   },
   "I built \"$title\" for you. Open the app or tell me what to change.": {
     fi: "Rakensin sinulle appin \"$title\". Avaa app tai kerro mitä muutetaan.",
@@ -57,14 +60,14 @@ export const translations = {
   "Hi! I'm Applet — I'll help you build a personal app.\n\nDescribe what you need in plain language, for example:\n• a habit tracker\n• a wine journal\n• a packing list for camping\n• a tip calculator\n• a reading list\n\nSmall, personal tools work best — trackers, journals, checklists, calculators, and simple one-off utilities.\n\nWhat would you like to build?": {
     fi: "Hei! Olen Applet — autan sinua rakentamaan henkilökohtaisen appin.\n\nKuvaile mitä tarvitset arkikielellä, esimerkiksi:\n• tapaseuranta\n• viinipäiväkirja\n• retken pakkauslista\n• tippilaskuri\n• lukulista\n\nParhaiten toimivat pienet, henkilökohtaiset työkalut — seurannat, päiväkirjat, checklistat, laskurit ja kertakäyttöiset apurit.\n\nMitä haluaisit rakentaa?",
   },
-  "Sign in to open your applets": {
-    fi: "Kirjaudu avataksesi appletisi",
+  "Sign in to open your apps": {
+    fi: "Kirjaudu avataksesi appisi",
   },
-  "Tap New Applet to build your first app.": {
-    fi: "Napauta Uusi Applet rakentaaksesi ensimmäisen appisi.",
+  "Tap New App to build your first app.": {
+    fi: "Napauta Uusi app rakentaaksesi ensimmäisen appisi.",
   },
-  "Use Create Applet to build your first app.": {
-    fi: "Luo ensimmäinen app Create Applet -napilla.",
+  "Use Create to build your first app.": {
+    fi: "Luo ensimmäinen app Create-sivulta.",
   },
   "Create": {
     fi: "Luo",
@@ -170,10 +173,8 @@ export const translations = {
   "Open app": { fi: "Avaa app" },
   "Close": { fi: "Sulje" },
   "Edit": { fi: "Muokkaa" },
-  "Done": { fi: "Valmis" },
   "Edit $title": { fi: "Muokkaa: $title" },
   "Open $title": { fi: "Avaa: $title" },
-  "Tap an applet to edit it.": { fi: "Napauta applettia muokataksesi sitä." },
   "Delete \"$title\"? This cannot be undone.": {
     fi: "Poistetaanko \"$title\"? Tätä ei voi perua.",
   },

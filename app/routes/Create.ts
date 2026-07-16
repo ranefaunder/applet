@@ -55,13 +55,13 @@ export default function Create(_props: RoutePropsForPath<typeof CreatePath>) {
             >
               ${t("Login")}
             </button>
-            <a href=${`/${lang}/`} ui-button="inline sm">${t("My Applets")}</a>
+            <a href=${`/${lang}/`} ui-button="inline sm">${t("My Apps")}</a>
           </div>`
         : error
           ? html`
             <div class="state" ui-column="gap-md x-center y-center">
               <p>${error}</p>
-              <a href=${`/${lang}/`} ui-button="primary">${t("My Applets")}</a>
+              <a href=${`/${lang}/`} ui-button="primary">${t("My Apps")}</a>
             </div>`
           : html`
             <div class="state" ui-column="gap-md x-center y-center">
