@@ -15,7 +15,7 @@ export default function Home(_props: RoutePropsForPath<typeof HomePath>) {
     <div data-scope="Home" ui-container="md">
       <header class="hero">
         <div class="hero-copy">
-          <h1 class="title">${t("Applet — Let AI make personal apps for your needs.")}</h1>
+          <h1 class="title">${t("Let AI make personal apps for your needs.")}</h1>
           <p class="subtitle">${t("Your ideas. Your apps. Your data. Your way.")}</p>
         </div>
         <a class="create-btn" href=${`/${lang}/create`} ui-button="primary">

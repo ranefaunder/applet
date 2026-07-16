@@ -9,6 +9,9 @@ export const translations = {
   "Applet — Let AI make personal apps for your needs.": {
     fi: "Applet — Anna tekoälyn tehdä henkilökohtaiset appit tarpeisiisi.",
   },
+  "Let AI make personal apps for your needs.": {
+    fi: "Anna tekoälyn tehdä henkilökohtaiset appit tarpeisiisi.",
+  },
   "Describe what you need in plain language. Applet builds your app in minutes — no code required.": {
     fi: "Kuvaile mitä tarvitset arkikielellä. Applet rakentaa sovelluksen minuuteissa — ei koodia.",
   },
