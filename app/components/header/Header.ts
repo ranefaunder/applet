@@ -27,7 +27,7 @@ export default function Header() {
         <span class="logo-icon" aria-hidden="true">
           <span class="logo-icon-letter faunder-logo-font">A</span>
         </span>
-        <span class="logo-text faunder-logo-font">Applet</span>
+        <span class="logo-text faunder-logo-font">Abblet</span>
       </a>
       <nav class="navigation" ui-row="gap-lg y-center">
         <a href="/${lang}/" ui-button="inline">${t("My Applets")}</a>
