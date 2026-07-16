@@ -139,3 +139,9 @@ export const dbUpdateApp = (id: string, data: { title?: string; description?: st
     `)
     .run(title ?? null, description ?? null, configJson ?? null, isDraft, now, id);
 };
+
+/** Delete an app owned by the given user. Cascades to messages/records. */
+export const dbDeleteApp = (id: string, ownerId: string): boolean => {
+  const result = db.query("DELETE FROM apps WHERE id = ? AND owner_id = ?").run(id, ownerId);
+  return result.changes > 0;
+};

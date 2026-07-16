@@ -50,6 +50,7 @@ function getInitialApp(req: BunRequest, user: AuthenticatedUser | null): AppDeta
     ownerId: row.owner_id,
     config,
     canEdit: user?.id === row.owner_id,
+    isDraft: row.is_draft === 1,
   };
 }
 

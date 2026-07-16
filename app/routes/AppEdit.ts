@@ -14,12 +14,14 @@ import {
   editLoading,
   editSending,
   editSavingCode,
+  editPublishing,
   editError,
   editMode,
   codeDraft,
   loadEdit,
   sendChatMessage,
   saveCode,
+  publishToMyApplets,
 } from "/app/stores/appEditStore";
 
 export const AppEditPath = "/:lang/app/:slug/edit" as const;
@@ -36,6 +38,8 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
   const app = editApp.value;
   const loading = editLoading.value;
   const creating = app != null && isDraftConfig(app.config);
+  const canAddToHome = app != null && app.canEdit && !creating && app.isDraft;
+  const publishing = editPublishing.value;
 
   const view = html`
     <div data-scope="AppEdit">
@@ -51,6 +55,21 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
               ${t("Open app")}
             </a>`}
       </header>
+
+      ${canAddToHome
+        ? html`
+          <div class="draft-banner">
+            <p>${t("This app is still a draft. Add it to My Applets when you're ready.")}</p>
+            <button
+              type="button"
+              ui-button="primary sm"
+              disabled=${publishing}
+              onClick=${() => void publishToMyApplets(slug)}
+            >
+              ${publishing ? t("Adding…") : t("Add to My Applets")}
+            </button>
+          </div>`
+        : ""}
 
       ${loading && !app
         ? html`<div class="state"><span class="spinner" aria-hidden="true"></span><p>${t("Loading…")}</p></div>`
@@ -311,6 +330,26 @@ function style() {
 
       .topbar .open {
         color: var(--primary-700);
+      }
+
+      .draft-banner {
+        flex: none;
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.75rem 1rem;
+        background: oklch(from var(--primary-100) l c h / 80%);
+        border-bottom: 1px solid var(--primary-200);
+        color: var(--neutral-800);
+        font-size: 0.875rem;
+      }
+
+      .draft-banner p {
+        margin: 0;
+        flex: 1;
+        min-width: 12rem;
       }
 
       .state {

@@ -25,6 +25,7 @@ function toDetail(
     ownerId: row.owner_id,
     config,
     canEdit: true,
+    isDraft: row.is_draft === 1,
   };
 }
 

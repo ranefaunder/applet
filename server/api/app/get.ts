@@ -29,6 +29,7 @@ function buildAppDetail(
     ownerId: row.owner_id,
     config,
     canEdit: isOwner,
+    isDraft: row.is_draft === 1,
   };
 }
 

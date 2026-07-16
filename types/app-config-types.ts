@@ -30,6 +30,8 @@ export type AppDetail = {
   ownerId: string;
   config: AppConfig;
   canEdit: boolean;
+  /** Home-screen placement: true = Drafts, false = My Applets */
+  isDraft: boolean;
 };
 
 export type AppEditRole = "user" | "assistant";

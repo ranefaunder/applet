@@ -122,3 +122,26 @@ export async function saveCode(slug: string): Promise<void> {
     editSavingCode.value = false;
   }
 }
+
+export const editPublishing = signal(false);
+
+/** Promote a ready draft into My Applets on the home screen. */
+export async function publishToMyApplets(slug: string): Promise<boolean> {
+  if (editPublishing.value) return false;
+  editError.value = null;
+  editPublishing.value = true;
+  try {
+    const result = await apiFetch<{ app: AppDetail }>(`/api/${lang()}/app/publish`, {
+      method: "POST",
+      body: JSON.stringify({ slug }),
+    });
+    if (!result.success) {
+      editError.value = result.error.message ?? result.error.code;
+      return false;
+    }
+    editApp.value = result.data.app;
+    return true;
+  } finally {
+    editPublishing.value = false;
+  }
+}

@@ -6,8 +6,8 @@ export const translations = {
   "Applet — Apply it.": {
     fi: "Applet — Toteuta se.",
   },
-  "Build Personal Apps for Your Needs.": {
-    fi: "Tee henkilökohtaisia appeja tarpeisiisi.",
+  "Applet — Let AI make personal apps for your needs.": {
+    fi: "Applet — Anna tekoälyn tehdä henkilökohtaiset appit tarpeisiisi.",
   },
   "Describe what you need in plain language. Applet builds your app in minutes — no code required.": {
     fi: "Kuvaile mitä tarvitset arkikielellä. Applet rakentaa sovelluksen minuuteissa — ei koodia.",
@@ -35,6 +35,18 @@ export const translations = {
   },
   "Starting chat…": {
     fi: "Avataan keskustelua…",
+  },
+  "Add to My Applets": {
+    fi: "Lisää omiin appleteihin",
+  },
+  "Adding…": {
+    fi: "Lisätään…",
+  },
+  "This app is still a draft. Add it to My Applets when you're ready.": {
+    fi: "Tämä app on vielä luonnos. Lisää se omiin appleteihin kun olet valmis.",
+  },
+  "Finish building the app before adding it to My Applets.": {
+    fi: "Viimeistele app ennen kuin lisäät sen omiin appleteihin.",
   },
   "I built \"$title\" for you. Open the app or tell me what to change.": {
     fi: "Rakensin sinulle appin \"$title\". Avaa app tai kerro mitä muutetaan.",
@@ -160,6 +172,17 @@ export const translations = {
   "Open app": { fi: "Avaa app" },
   "Close": { fi: "Sulje" },
   "Edit": { fi: "Muokkaa" },
+  "Done": { fi: "Valmis" },
+  "Edit $title": { fi: "Muokkaa: $title" },
+  "Open $title": { fi: "Avaa: $title" },
+  "Delete $title": { fi: "Poista: $title" },
+  "Tap an applet to edit it.": { fi: "Napauta applettia muokataksesi sitä." },
+  "Tap an applet to edit it. Tap × to delete.": {
+    fi: "Napauta applettia muokataksesi. Napauta × poistaaksesi.",
+  },
+  "Delete \"$title\"? This cannot be undone.": {
+    fi: "Poistetaanko \"$title\"? Tätä ei voi perua.",
+  },
   "Editor": { fi: "Editori" },
   "Loading…": { fi: "Ladataan…" },
   "You can only edit your own apps.": { fi: "Voit muokata vain omia appejasi." },

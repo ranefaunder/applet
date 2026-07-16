@@ -1,8 +1,9 @@
 import { html, css } from "/utils/markup";
-import { useEffect } from "preact/hooks";
+import { useEffect, useState } from "preact/hooks";
 import { t } from "/utils/i18n";
-import { apps, loadApps, clearApps } from "/app/stores/appStore";
+import { apps, loadApps, clearApps, deleteApp } from "/app/stores/appStore";
 import { isLoggedIn, user } from "/app/stores/userStore";
+import type { AppSummary } from "/types/app-types";
 import AppIcon from "/app/components/home/AppIcon";
 import DraftIcon from "/app/components/home/DraftIcon";
 
@@ -11,20 +12,43 @@ export default function AppLauncher() {
   const loggedInUser = user.value;
   const readyApps = list.filter((app) => !app.isDraft);
   const draftApps = list.filter((app) => app.isDraft);
+  const [editing, setEditing] = useState(false);
+  const hasApps = readyApps.length > 0 || draftApps.length > 0;
 
   useEffect(() => {
     if (loggedInUser) {
       void loadApps();
     } else {
       clearApps();
+      setEditing(false);
     }
   }, [loggedInUser?.id]);
+
+  useEffect(() => {
+    if (!hasApps) setEditing(false);
+  }, [hasApps]);
+
+  function requestDelete(app: AppSummary) {
+    const ok = window.confirm(t("Delete \"$title\"? This cannot be undone.", { title: app.title }));
+    if (!ok) return;
+    void deleteApp(app.slug);
+  }
 
   const view = html`
     <div data-scope="AppLauncher">
       <section class="section">
         <div class="section-header">
           <h2 class="section-title">${t("My Applets")}</h2>
+          ${isLoggedIn() && hasApps
+            ? html`
+              <button
+                type="button"
+                class="edit-toggle"
+                onClick=${() => setEditing((v) => !v)}
+              >
+                ${editing ? t("Done") : t("Edit")}
+              </button>`
+            : ""}
         </div>
 
         ${!isLoggedIn()
@@ -40,15 +64,19 @@ export default function AppLauncher() {
               </button>
             </div>`
           : html`
-            <div class="grid">
-              ${readyApps.map((app) => html`<${AppIcon} app=${app} />`)}
+            <div class=${editing ? "grid editing" : "grid"}>
+              ${readyApps.map(
+                (app) => html`<${AppIcon} app=${app} editing=${editing} onDelete=${requestDelete} />`,
+              )}
             </div>
             ${readyApps.length === 0
               ? html`
                 <p class="hint">
                   ${t("Use Create Applet to build your first app.")}
                 </p>`
-              : ""}`}
+              : editing
+                ? html`<p class="hint">${t("Tap an applet to edit it. Tap × to delete.")}</p>`
+                : ""}`}
       </section>
 
       ${isLoggedIn() && draftApps.length > 0
@@ -57,8 +85,10 @@ export default function AppLauncher() {
             <div class="section-header">
               <h2 class="section-title">${t("Drafts")}</h2>
             </div>
-            <div class="grid">
-              ${draftApps.map((app) => html`<${DraftIcon} app=${app} />`)}
+            <div class=${editing ? "grid editing" : "grid"}>
+              ${draftApps.map(
+                (app) => html`<${DraftIcon} app=${app} editing=${editing} onDelete=${requestDelete} />`,
+              )}
             </div>
           </section>`
         : ""}
@@ -88,6 +118,21 @@ export default function AppLauncher() {
         font-weight: 700;
         letter-spacing: -0.02em;
         color: var(--neutral-900);
+      }
+
+      .edit-toggle {
+        border: none;
+        background: none;
+        padding: 0.25rem 0.125rem;
+        font: inherit;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--primary-600);
+        cursor: pointer;
+      }
+
+      .edit-toggle:hover {
+        color: var(--primary-700);
       }
 
       .grid {
