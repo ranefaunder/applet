@@ -52,7 +52,15 @@ The app must feel instant and stable while typing — no cursor jumps, no lost f
 - Vanilla JavaScript only. NO imports, NO external libraries, NO CDN links, NO network requests (no fetch/XMLHttpRequest/WebSocket).
 - Use Shadow DOM (this.attachShadow({ mode: "open" })) and put ALL markup and CSS inside the shadow root so styles never leak.
 - The component is fully interactive and complete: it builds its own UI, handles input, and renders results.
-- Persist ALL user data itself using localStorage. Key every storage entry with a unique prefix: "appstudo:<tagName>:data". Load in connectedCallback; save after meaningful changes (debounce rapid input saves by ~300ms if needed).
+- Persist structured app state (lists, settings, text fields) with localStorage. Key every storage entry with a unique prefix: "appstudo:<tagName>:data". Load in connectedCallback; save after meaningful changes (debounce rapid input saves by ~300ms if needed).
+- When the app stores images, photos, attachments, or other binary files, use the Origin Private File System (OPFS) — NOT localStorage (quota/size) and NOT remote uploads. Pattern:
+  1. const root = await navigator.storage.getDirectory();
+  2. const dir = await root.getDirectoryHandle("appstudo-<tagName>", { create: true });
+  3. Write: const handle = await dir.getFileHandle(filename, { create: true }); const writable = await handle.createWritable(); await writable.write(blob); await writable.close();
+  4. Read: const file = await (await dir.getFileHandle(filename)).getFile(); then URL.createObjectURL(file) for <img> / download.
+  5. Keep only file names / ids in localStorage state; the binary bytes live in OPFS.
+  6. Guard with try/catch; if OPFS is unavailable, show a friendly inline error (never alert()).
+  7. Still NO network requests — OPFS is local-only, same origin privacy model.
 - Guard JSON.parse with try/catch; fall back to sensible defaults on corrupt data.
 - Do NOT rely on external CSS, fonts, or global variables. Everything self-contained.
 
@@ -149,7 +157,7 @@ Quality bar:
 - Touch targets ≥ 44px, body font 17px (inputs ≥16px), no horizontal scroll, content never touches edges, safe areas respected.
 - Typing in an input never rebuilds that input element (focus & caret stay put).
 - List/filter changes update only the list area.
-- Data survives page reload via localStorage.
+- Data survives page reload via localStorage (structured state) and OPFS (images/files when used).
 - No console errors on first load with empty state; empty state is friendly.
 - tagName in customElements.define matches the JSON tagName exactly.`;
 }
