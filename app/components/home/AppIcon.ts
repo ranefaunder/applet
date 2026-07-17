@@ -188,6 +188,7 @@ export default function AppIcon({ app }: Props) {
     @scope ([data-scope="AppIcon"]) to ([data-scope]) {
       &.app-icon-root {
         width: 100%;
+        min-width: 0;
         max-width: var(--home-icon, 4.25rem);
         display: flex;
         justify-content: center;
@@ -275,7 +276,7 @@ export default function AppIcon({ app }: Props) {
       }
 
       .label {
-        width: 120%;
+        width: 100%;
         max-width: 5.5rem;
         font-size: 0.6875rem;
         font-weight: 700;

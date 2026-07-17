@@ -86,7 +86,7 @@ export async function sendEmailSafe(
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "Abblet <no-reply@abblet.com>",
+        from: "Abblet <no-reply@faunder.fi>",
         reply_to: "rane@faunder.fi",
         to: [resendTo],
         subject,

@@ -55,6 +55,14 @@ export default function Layout({ children }: LayoutProps) {
         max-height: 100svh;
         max-height: 100dvh;
         overflow: hidden;
+      }
+
+      /* Etusivu on läpinäkyvä, jotta bodyn taustakuva näkyy läpi. */
+      &.home {
+        background-color: transparent;
+      }
+
+      &.editor {
         background-color: #1a1848;
       }
 

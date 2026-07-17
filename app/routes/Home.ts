@@ -7,15 +7,6 @@ export const HomePath = "/:lang" as const;
 export default function Home(_props: RoutePropsForPath<typeof HomePath>) {
   const view = html`
     <div data-scope="Home" class="home-screen">
-      <img
-        class="wallpaper"
-        src="/static/images/wallpaper.webp"
-        alt=""
-        decoding="async"
-        fetchpriority="high"
-        aria-hidden="true"
-      />
-
       <div class="home-content">
         <${AppLauncher} />
       </div>
@@ -36,25 +27,13 @@ export default function Home(_props: RoutePropsForPath<typeof HomePath>) {
 
         position: relative;
         flex: 1;
-        min-height: 100%;
+        min-height: 0;
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        background-color: #1a1848;
+        background-color: transparent;
         font-family: var(--home-font);
         color: #fff;
-      }
-
-      .wallpaper {
-        position: absolute;
-        inset: 0;
-        z-index: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: center;
-        pointer-events: none;
-        display: block;
       }
 
       .home-content {
@@ -62,12 +41,14 @@ export default function Home(_props: RoutePropsForPath<typeof HomePath>) {
         z-index: 1;
         flex: 1;
         min-height: 0;
-        width: var(--home-width);
+        width: 100%;
+        max-width: var(--home-width);
         margin: 0 auto;
         padding:
           calc(1.15rem + env(safe-area-inset-top, 0px))
           var(--home-inline)
           calc(7.5rem + env(safe-area-inset-bottom, 0px));
+        overflow-x: hidden;
         overflow-y: auto;
         overscroll-behavior: contain;
         -webkit-overflow-scrolling: touch;
