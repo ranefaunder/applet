@@ -57,8 +57,14 @@ export const translations = {
   "I built \"$title\" for you. Open the app or tell me what to change.": {
     fi: "Rakensin sinulle appin \"$title\". Avaa app tai kerro mitä muutetaan.",
   },
-  "Hi! I'm Abblet — I'll help you build a personal app.\n\nDescribe what you need in plain language, for example:\n• a habit tracker\n• a wine journal\n• a packing list for camping\n• a tip calculator\n• a reading list\n\nSmall, personal tools work best — trackers, journals, checklists, calculators, and simple one-off utilities.\n\nWhat would you like to build?": {
-    fi: "Hei! Olen Abblet — autan sinua rakentamaan henkilökohtaisen appin.\n\nKuvaile mitä tarvitset arkikielellä, esimerkiksi:\n• tapaseuranta\n• viinipäiväkirja\n• retken pakkauslista\n• tippilaskuri\n• lukulista\n\nParhaiten toimivat pienet, henkilökohtaiset työkalut — seurannat, päiväkirjat, checklistat, laskurit ja kertakäyttöiset apurit.\n\nMitä haluaisit rakentaa?",
+  "I updated the app icon.": {
+    fi: "Päivitin app-kuvakkeen.",
+  },
+  "I couldn't update the app icon right now. Try again in a moment.": {
+    fi: "En saanut app-kuvaketta päivitettyä juuri nyt. Kokeile hetken päästä uudelleen.",
+  },
+  "Hey — I'm Abblet.\n\nTell me what kind of little app would help you. Just write it like you'd say it out loud — a couple of words is enough.\n\nFor example: shopping list, habit tracker, workout log, recipe book, budget, or mood journal.\n\nI do best with small, personal tools. What do you need?": {
+    fi: "Hei — olen Abblet.\n\nKerro millainen pieni app auttaisi sinua. Kirjoita ihan niin kuin puhuisit — pari sanaa riittää.\n\nEsimerkiksi: ostoslista, tapaseuranta, treenipäiväkirja, reseptikirja, budjetti tai mielialaseuranta.\n\nParhaiten teen pieniä, henkilökohtaisia työkaluja. Mitä sinä tarvitset?",
   },
   "Sign in to open your apps": {
     fi: "Kirjaudu avataksesi appisi",
@@ -148,6 +154,9 @@ export const translations = {
   "Invalid email address": { fi: "Virheellinen sähköpostiosoite" },
   "You must accept the terms of use to register.": { fi: "Sinun on hyväksyttävä käyttöehdot rekisteröityäksesi." },
   "Too many requests. Wait a moment before retrying.": { fi: "Liian monta pyyntöä. Odota hetki ennen uudelleenyritystä." },
+  "The AI took too long to respond. Try again or pick another model.": {
+    fi: "Tekoäly vastasi liian hitaasti. Kokeile uudelleen tai valitse toinen malli.",
+  },
   "Email service unavailable. Try again later.": { fi: "Sähköpostipalvelu ei ole käytettävissä. Yritä myöhemmin uudelleen." },
   "Error sending code. Try again.": { fi: "Koodin lähetys epäonnistui. Yritä uudelleen." },
   "User not found. Register first.": { fi: "Käyttäjää ei löydy. Rekisteröidy ensin." },
@@ -155,7 +164,7 @@ export const translations = {
   "Go home": { fi: "Etusivulle" },
   "Could not create app. Try again.": { fi: "Appia ei voitu luoda. Yritä uudelleen." },
   "AI credits insufficient. Add credits to OpenRouter or switch to a cheaper model.": {
-    fi: "Tekoälykrediitit eivät riitä. Lisää saldoa OpenRouteriin tai vaihda halvempaan malliin.",
+    fi: "Tämän mallin krediitit eivät riitä. Vaihda halvempaan malliin tai lisää saldoa OpenRouteriin.",
   },
   "AI service misconfigured. Try again later.": {
     fi: "Tekoälypalvelu on väärin konfiguroitu. Yritä myöhemmin uudelleen.",
@@ -196,16 +205,13 @@ export const translations = {
   "Sending…": { fi: "Lähetetään…" },
   "Send": { fi: "Lähetä" },
   "AI model": { fi: "Tekoälymalli" },
-  "Flash": { fi: "Flash" },
-  "Pro": { fi: "Pro" },
+  "Total": { fi: "Yhteensä" },
+  "Total AI cost": { fi: "Tekoälyn kokonaishinta" },
   "Invalid AI model.": { fi: "Virheellinen tekoälymalli." },
   "Building": { fi: "Rakenteilla" },
   "Describe your app": { fi: "Kuvaile appisi" },
   "Tell Abblet what you need — it builds a working app in minutes.": {
     fi: "Kerro mitä tarvitset — Abblet rakentaa toimivan apin minuuteissa.",
-  },
-  "Enter to send · Shift+Enter for a new line": {
-    fi: "Enter lähettää · Shift+Enter rivinvaihto",
   },
   "Unsaved changes": { fi: "Tallentamattomia muutoksia" },
   "Saved": { fi: "Tallennettu" },

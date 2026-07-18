@@ -4,10 +4,10 @@ import { apiError, apiSuccess } from "/utils/api.server";
 import { dbGetAppBySlug, dbUpdateApp } from "/server/database/queries/apps";
 import { dbAddAppMessage, dbListAppMessages } from "/server/database/queries/app-messages";
 import { editAppConfig, generateAppConfig } from "/utils/ai-apps.server";
-import { generateAppIcon, userAskedForAppIcon } from "/utils/ai-app-icons.server";
+import { generateAppIcon } from "/utils/ai-app-icons.server";
 import { apiErrorFromAi } from "/utils/ai-api.server";
 import { resolveEditAiModel } from "/utils/ai-core.server";
-import { DEFAULT_EDIT_AI_MODEL, isEditAiModelKey } from "/utils/ai-models";
+import { DEFAULT_EDIT_AI_MODEL, isEditAiModelKey, resolveStoredModelRef } from "/utils/ai-models";
 import { isDraftConfig, parseAppConfig, type AppConfig, type AppDetail } from "/types/app-config-types";
 import type { Language } from "/types/i18n-types";
 import { getLang } from "/utils/lang";
@@ -87,27 +87,33 @@ export default {
       let nextConfig: AppConfig;
       let assistantReply: string;
       let needsNewIcon = false;
+      let costUsd: number | null = null;
+      let modelUsed: string | null = null;
+      const aiStartedAt = Date.now();
 
       if (creating) {
-        let config;
+        let generated;
         try {
-          config = await generateAppConfig(message, language, model);
+          generated = await generateAppConfig(message, language, model);
         } catch (err) {
           const aiError = apiErrorFromAi(err, language);
           if (aiError) return aiError;
           throw err;
         }
-        if (!config) {
+        if (!generated) {
           return apiError({
             code: "GENERATION_FAILED",
             message: t("Could not create app. Try again.", language),
             status: 500,
           });
         }
-        nextConfig = config;
+        nextConfig = generated.config;
+        costUsd = generated.costUsd;
+        modelUsed = generated.modelUsed;
         assistantReply = t("I built \"$title\" for you. Open the app or tell me what to change.", {
-          title: config.title,
+          title: generated.config.title,
         }, language);
+        // First launcher icon is created only on "Add to My Apps".
       } else {
         const history = dbListAppMessages(row.id);
         let result;
@@ -126,10 +132,15 @@ export default {
           });
         }
         nextConfig = result.config;
+        costUsd = result.costUsd;
+        modelUsed = result.modelUsed;
         assistantReply = result.summary;
-        // Icon only on an explicit user request — not on theme/title/feature edits.
-        needsNewIcon = userAskedForAppIcon(message);
+        // Icon change only when the model flags it, and only if a launcher icon already exists.
+        needsNewIcon = Boolean(row.icon_id) && result.needsNewIcon;
       }
+
+      const durationMs = Date.now() - aiStartedAt;
+      const storedModelRef = resolveStoredModelRef({ requestedKey: modelKey, modelUsed });
 
       let iconId: string | null | undefined;
       if (needsNewIcon) {
@@ -138,6 +149,11 @@ export default {
           description: nextConfig.description,
           clientIP,
         });
+        if (iconId) {
+          assistantReply = `${assistantReply}\n\n${t("I updated the app icon.", language)}`;
+        } else {
+          assistantReply = `${assistantReply}\n\n${t("I couldn't update the app icon right now. Try again in a moment.", language)}`;
+        }
       }
 
       dbUpdateApp(row.id, {
@@ -155,6 +171,9 @@ export default {
         appId: row.id,
         role: "assistant",
         content: assistantReply,
+        modelKey: storedModelRef,
+        costUsd,
+        durationMs,
       });
 
       const updated = dbGetAppBySlug(slug)!;

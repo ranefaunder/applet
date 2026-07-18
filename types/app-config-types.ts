@@ -44,6 +44,12 @@ export type AppEditMessage = {
   role: AppEditRole;
   content: string;
   createdAt: string;
+  /** Edit-picker model key used for this assistant reply, if any. */
+  modelKey?: string | null;
+  /** OpenRouter usage cost in USD for this reply, if any. */
+  costUsd?: number | null;
+  /** Wall time for the AI request in ms, if any. */
+  durationMs?: number | null;
 };
 
 export function parseAppConfig(json: string): AppConfig | null {

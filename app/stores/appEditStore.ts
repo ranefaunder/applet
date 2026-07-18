@@ -5,11 +5,13 @@ import { apiFetch } from "/utils/api.client";
 import { getLang } from "/utils/lang";
 import {
   DEFAULT_EDIT_AI_MODEL,
-  EDIT_AI_MODEL_FLASH,
+  isEditAiModelKey,
   type EditAiModelKey,
 } from "/utils/ai-models";
 
 export type EditMode = "chat" | "code";
+
+const EDIT_AI_MODEL_STORAGE_KEY = "abblet.editAiModel";
 
 export const editApp = signal<AppDetail | null>(null);
 export const editMessages = signal<AppEditMessage[]>([]);
@@ -19,15 +21,41 @@ export const editSavingCode = signal(false);
 export const editError = signal<string | null>(null);
 export const editMode = signal<EditMode>("chat");
 export const codeDraft = signal<string>("");
-/** UI selection only — Pro is one-shot and resets to Flash after send. */
+/** Persists across sends and page loads — never reset after send. */
 export const editAiModel = signal<EditAiModelKey>(DEFAULT_EDIT_AI_MODEL);
+
+export function setEditAiModel(key: EditAiModelKey): void {
+  editAiModel.value = key;
+  try {
+    localStorage.setItem(EDIT_AI_MODEL_STORAGE_KEY, key);
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
+function restoreEditAiModelFromStorage(): void {
+  try {
+    const stored = localStorage.getItem(EDIT_AI_MODEL_STORAGE_KEY);
+    if (isEditAiModelKey(stored)) editAiModel.value = stored;
+  } catch {
+    // ignore
+  }
+}
 
 function lang(): string {
   return getLang(window.location.pathname) ?? "en";
 }
 
+function resetEditRequestFlags(): void {
+  editSending.value = false;
+  editSavingCode.value = false;
+  editPublishing.value = false;
+}
+
 /** Seed from the SSR snapshot so a direct page load renders without a flash. */
 export function initAppEditStore(): void {
+  resetEditRequestFlags();
+  restoreEditAiModelFromStorage();
   const { initialApp } = ssrContext();
   if (initialApp && initialApp.canEdit) {
     editApp.value = initialApp;
@@ -41,6 +69,8 @@ export function initAppEditStore(): void {
 
 export async function loadEdit(slug: string): Promise<void> {
   editError.value = null;
+  // Never leave a sticky "sending" lock from a previous SPA visit.
+  resetEditRequestFlags();
 
   const alreadyLoaded = editApp.value?.slug === slug;
   if (!alreadyLoaded) {
@@ -75,15 +105,15 @@ export async function loadEdit(slug: string): Promise<void> {
   }
 }
 
-export async function sendChatMessage(slug: string, text: string): Promise<void> {
+/** @returns false if another send is already in flight or text is empty. */
+export async function sendChatMessage(slug: string, text: string): Promise<boolean> {
   const trimmed = text.trim();
-  if (!trimmed || editSending.value) return;
+  if (!trimmed) return false;
+  if (editSending.value) return false;
 
   const model = editAiModel.value;
   editError.value = null;
   editSending.value = true;
-  // Pro is a one-shot: always return the picker to Flash after submitting.
-  editAiModel.value = EDIT_AI_MODEL_FLASH;
 
   // Optimistic: show the user's message immediately.
   const optimistic: AppEditMessage = {
@@ -95,19 +125,23 @@ export async function sendChatMessage(slug: string, text: string): Promise<void>
   editMessages.value = [...editMessages.value, optimistic];
 
   try {
-    const result = await apiFetch<{ app: AppDetail; messages: AppEditMessage[] }>(
-      `/api/${lang()}/app/edit`,
-      { method: "POST", body: JSON.stringify({ slug, message: trimmed, model }) },
-    );
+    const result = await apiFetch<{
+      app: AppDetail;
+      messages: AppEditMessage[];
+    }>(`/api/${lang()}/app/edit`, {
+      method: "POST",
+      body: JSON.stringify({ slug, message: trimmed, model }),
+    });
     if (!result.success) {
       editError.value = result.error.message ?? result.error.code;
       // Drop the optimistic message on failure.
       editMessages.value = editMessages.value.filter((m) => m.id !== optimistic.id);
-      return;
+      return true;
     }
     editApp.value = result.data.app;
     codeDraft.value = result.data.app.config.code;
     editMessages.value = result.data.messages;
+    return true;
   } finally {
     editSending.value = false;
   }

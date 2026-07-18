@@ -45,23 +45,6 @@ const iconBriefSchema = z.object({
 
 type IconBrief = z.infer<typeof iconBriefSchema>;
 
-/**
- * True only when the user clearly asks to create or change the launcher icon.
- * Theme/title tweaks alone must not regenerate icons.
- */
-export function userAskedForAppIcon(message: string): boolean {
-  const m = message.trim();
-  if (!m) return false;
-  return (
-    /\b(?:new|another|different|better)\s+(?:app\s*)?icon\b/i.test(m) ||
-    /\b(?:generate|create|make|regenerate|redo|update|change|replace|design|draw)\s+(?:(?:a|an|the|my|our)\s+)?(?:new\s+)?(?:app\s*)?icon\b/i.test(m) ||
-    /\b(?:give|get)\s+(?:me\s+)?(?:(?:a|an)\s+)?(?:new\s+)?(?:app\s*)?icon\b/i.test(m) ||
-    /\b(?:uusi|toinen|eri)\s+(?:appi)?(?:kuvake|ikoni)\b/i.test(m) ||
-    /\b(?:luo|tee|generoi|vaihda|päivitä|muuta|suunnittele|piirrä)\s+(?:uusi\s+)?(?:appi)?(?:kuvake|ikoni)\b/i.test(m) ||
-    /\b(?:kuvake|ikoni)\s+(?:uudestaan|uudelleen)\b/i.test(m)
-  );
-}
-
 export async function generateAppIcon(opts: {
   title: string;
   description: string;
@@ -108,11 +91,12 @@ What it does: ${description.trim() || "(no description)"}
 
 Decide the icon for this app and return JSON with: subject, style, background, colors, composition, materialsAndLighting, mood, avoid, renderPrompt.`;
 
-  return requestJsonFromAi({
+  const { data } = await requestJsonFromAi({
     systemPrompt,
     userPrompt,
     schema: iconBriefSchema,
   });
+  return data;
 }
 
 function buildImagePrompt(brief: IconBrief): string {

@@ -76,21 +76,22 @@ export default {
 
     const language = (getLang(req.url) ?? "en") as Language;
     const prompt = existing?.prompt ?? row.description;
-    let config;
+    let generated;
     try {
-      config = await generateAppConfig(prompt, language);
+      generated = await generateAppConfig(prompt, language);
     } catch (err) {
       const aiError = apiErrorFromAi(err, language);
       if (aiError) return aiError;
       throw err;
     }
-    if (!config) {
+    if (!generated) {
       return apiError({
         code: "GENERATION_FAILED",
         message: t("Could not create app. Try again.", language),
         status: 500,
       });
     }
+    const config = generated.config;
 
     dbUpdateApp(row.id, {
       title: config.title,

@@ -11,8 +11,8 @@ const aiEditSchema = z.object({
   title: z.string().min(1).max(80).optional(),
   description: z.string().optional(),
   code: z.string().min(1),
-  /** True only when the user clearly asked to create or change the launcher icon. */
-  needsNewIcon: z.boolean().optional(),
+  /** True only when the user clearly asked to change the existing launcher icon. */
+  needsNewIcon: z.boolean(),
 });
 
 /** Shared design + architecture guidelines used by both create and edit flows. */
@@ -168,7 +168,7 @@ export async function generateAppConfig(
   prompt: string,
   language: Language,
   model?: string,
-): Promise<AppConfig | null> {
+): Promise<{ config: AppConfig; costUsd: number | null; modelUsed: string | null } | null> {
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
 
   const systemPrompt = `You build small personal apps for Abblet. Each app is a single, self-contained Web Component (custom element) written in vanilla JavaScript.
@@ -181,7 +181,7 @@ Return one JSON object with:
 
 ${designGuidelines(langName)}`;
 
-  const generated = await requestJsonFromAi({
+  const { data: generated, costUsd, model: modelUsed } = await requestJsonFromAi({
     systemPrompt,
     userPrompt: `Create an app for: ${prompt}`,
     schema: aiAppSchema,
@@ -194,10 +194,14 @@ ${designGuidelines(langName)}`;
   if (!generated.code.includes(generated.tagName)) return null;
 
   return {
-    version: 2,
-    status: "ready",
-    prompt,
-    ...generated,
+    config: {
+      version: 2,
+      status: "ready",
+      prompt,
+      ...generated,
+    },
+    costUsd,
+    modelUsed,
   };
 }
 
@@ -212,7 +216,13 @@ export async function editAppConfig(opts: {
   instruction: string;
   language: Language;
   model?: string;
-}): Promise<{ config: AppConfig; summary: string; needsNewIcon: boolean } | null> {
+}): Promise<{
+  config: AppConfig;
+  summary: string;
+  needsNewIcon: boolean;
+  costUsd: number | null;
+  modelUsed: string | null;
+} | null> {
   const { current, history, instruction, language, model } = opts;
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
 
@@ -225,7 +235,7 @@ Return one JSON object with:
 - title: (optional) updated short app name, only if the change warrants it
 - description: (optional) updated 1-2 sentence description, only if it changed
 - code: the complete, updated JavaScript that registers the custom element
-- needsNewIcon: boolean — set true ONLY when the user explicitly and clearly asked to create, change, or regenerate the home-screen / launcher app icon (e.g. "make a new icon", "vaihda kuvake"). Set false for everything else — including renames, theme changes, new features, bugfixes, and UI tweaks. Never invent an icon request.
+- needsNewIcon: boolean — your judgment of whether the user clearly asked to change or regenerate the existing home-screen / launcher app icon. true only for an explicit icon request (e.g. "make a new icon", "vaihda kuvake"). false for everything else — renames, theme changes, features, bugfixes, UI tweaks. Never invent an icon request. The first launcher icon is created when the user adds the app to My Apps — do not promise an icon before that. When you set needsNewIcon true, the server regenerates the icon after your reply.
 
 ## Hard constraints
 - Keep the EXACT same custom element tagName: "${current.tagName}". The code must still call customElements.define("${current.tagName}", ...). Do NOT rename it.
@@ -259,7 +269,7 @@ ${instruction}
 
 Return the complete updated code and a short summary of what you changed.`;
 
-  const generated = await requestJsonFromAi({
+  const { data: generated, costUsd, model: modelUsed } = await requestJsonFromAi({
     systemPrompt,
     userPrompt,
     schema: aiEditSchema,
@@ -282,6 +292,8 @@ Return the complete updated code and a short summary of what you changed.`;
   return {
     config,
     summary: generated.summary.trim(),
-    needsNewIcon: generated.needsNewIcon === true,
+    needsNewIcon: generated.needsNewIcon,
+    costUsd,
+    modelUsed,
   };
 }

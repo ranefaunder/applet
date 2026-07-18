@@ -25,6 +25,12 @@ export function apiErrorFromAi(err: unknown, language: Language): Response | nul
         message: t("AI service misconfigured. Try again later.", language),
         status: 503,
       });
+    case "AI_TIMEOUT":
+      return apiError({
+        code: "AI_TIMEOUT",
+        message: t("The AI took too long to respond. Try again or pick another model.", language),
+        status: 504,
+      });
     default:
       return apiError({
         code: "GENERATION_FAILED",

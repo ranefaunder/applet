@@ -1,12 +1,7 @@
 import { jsonrepair } from "jsonrepair";
 import { z } from "zod";
 import { parseJson } from "/utils/json";
-import {
-  EDIT_AI_MODEL_FLASH,
-  EDIT_AI_MODEL_PRO,
-  EDIT_AI_MODEL_PRO_ID,
-  type EditAiModelKey,
-} from "/utils/ai-models";
+import { DEFAULT_EDIT_AI_MODEL, getEditAiModel, type EditAiModelKey } from "/utils/ai-models";
 
 export type AiResult<T> =
   | { ok: true; data: T }
@@ -26,14 +21,9 @@ export function getPrimaryAiModel(): string {
   return process.env.AI_MODEL ?? DEFAULT_AI_MODEL;
 }
 
-export function getFallbackAiModel(): string {
-  return process.env.AI_FALLBACK_MODEL ?? DEFAULT_AI_MODEL;
-}
-
-/** Resolve edit-chat model key → OpenRouter model id. Flash = env primary. */
-export function resolveEditAiModel(key: EditAiModelKey = EDIT_AI_MODEL_FLASH): string {
-  if (key === EDIT_AI_MODEL_PRO) return EDIT_AI_MODEL_PRO_ID;
-  return getPrimaryAiModel();
+/** Resolve edit-chat model key → OpenRouter model id. */
+export function resolveEditAiModel(key: EditAiModelKey = DEFAULT_EDIT_AI_MODEL): string {
+  return getEditAiModel(key).openRouterId;
 }
 
 export class AiRequestError extends Error {
@@ -73,13 +63,41 @@ export type RequestTextFromAiInput = {
   model?: string;
 };
 
-/** OpenRouter chat completion; returns assistant message text. */
-async function fetchOpenRouterCompletionForModel(messages: AiChatMessage[], model: string): Promise<string> {
-  const response = await fetch(OPENROUTER_CONFIG.url, {
-    method: "POST",
-    headers: OPENROUTER_CONFIG.headers,
-    body: JSON.stringify({ model, messages }),
-  });
+export type OpenRouterCompletion = {
+  content: string;
+  /** USD charged for this request (OpenRouter `usage.cost`), if present. */
+  costUsd: number | null;
+  /** OpenRouter model id that actually produced the reply. */
+  model: string;
+};
+
+function parseOpenRouterCost(usage: unknown): number | null {
+  if (!usage || typeof usage !== "object") return null;
+  const cost = (usage as { cost?: unknown }).cost;
+  return typeof cost === "number" && Number.isFinite(cost) ? cost : null;
+}
+
+const OPENROUTER_TIMEOUT_MS = 120_000;
+
+/** OpenRouter chat completion; returns assistant text + usage cost. */
+async function fetchOpenRouterCompletionForModel(
+  messages: AiChatMessage[],
+  model: string,
+): Promise<OpenRouterCompletion> {
+  let response: Response;
+  try {
+    response = await fetch(OPENROUTER_CONFIG.url, {
+      method: "POST",
+      headers: OPENROUTER_CONFIG.headers,
+      body: JSON.stringify({ model, messages }),
+      signal: AbortSignal.timeout(OPENROUTER_TIMEOUT_MS),
+    });
+  } catch (err) {
+    if (err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError")) {
+      throw new AiRequestError("AI_TIMEOUT", "AI_TIMEOUT");
+    }
+    throw err;
+  }
 
   if (!response.ok) {
     const errorMap: Record<number, string> = {
@@ -121,23 +139,15 @@ async function fetchOpenRouterCompletionForModel(messages: AiChatMessage[], mode
     content = (raw as { text: string }).text;
   }
   if (!content) throw new AiRequestError("Invalid OpenRouter response", "INVALID_RESPONSE");
-  return content;
+  const usedModel = typeof data?.model === "string" && data.model ? data.model : model;
+  return { content, costUsd: parseOpenRouterCost(data?.usage), model: usedModel };
 }
 
-async function fetchOpenRouterCompletion(messages: AiChatMessage[], model?: string): Promise<string> {
-  const primary = model ?? getPrimaryAiModel();
-  const fallback = getFallbackAiModel();
-
-  try {
-    return await fetchOpenRouterCompletionForModel(messages, primary);
-  } catch (err) {
-    const code = err instanceof AiRequestError ? err.code : "";
-    if (code === "INSUFFICIENT_CREDITS" && fallback !== primary) {
-      console.warn(`AI: ${primary} → insufficient credits, retrying with ${fallback}`);
-      return fetchOpenRouterCompletionForModel(messages, fallback);
-    }
-    throw err;
-  }
+async function fetchOpenRouterCompletion(
+  messages: AiChatMessage[],
+  model?: string,
+): Promise<OpenRouterCompletion> {
+  return fetchOpenRouterCompletionForModel(messages, model ?? getPrimaryAiModel());
 }
 
 /**
@@ -159,9 +169,16 @@ export async function requestTextFromAi(input: RequestTextFromAiInput): Promise<
     { role: "system", content: systemPrompt },
     { role: "user", content: userContent },
   ];
-  const text = await fetchOpenRouterCompletion(messages, model);
-  return text.trim();
+  const { content } = await fetchOpenRouterCompletion(messages, model);
+  return content.trim();
 }
+
+export type AiJsonResult<T> = {
+  data: T | null;
+  costUsd: number | null;
+  /** OpenRouter model id that actually produced the reply. */
+  model: string | null;
+};
 
 function appendJsonSchemaToSystemPrompt(systemPrompt: string, schema: z.ZodType<unknown>): string {
   try {
@@ -191,7 +208,9 @@ You MUST respond with a single JSON object that passes the server's schema valid
  * Optional `schema`: embedded in the system message as JSON Schema (Zod → JSON Schema) and validated with `safeParse` after; returns validated data or `null` if invalid.
  * Without `schema`, returns parsed JSON. Network/API/JSON-parse errors throw.
  */
-export async function requestJsonFromAi<T = unknown>(input: RequestJsonFromAiInput<T>): Promise<T | null> {
+export async function requestJsonFromAi<T = unknown>(
+  input: RequestJsonFromAiInput<T>,
+): Promise<AiJsonResult<T>> {
   const { systemPrompt, userPrompt, imageBase64, schema, model } = input;
   const systemContent = schema ? appendJsonSchemaToSystemPrompt(systemPrompt, schema) : systemPrompt;
   let userContent: AiChatMessageContent;
@@ -209,15 +228,15 @@ export async function requestJsonFromAi<T = unknown>(input: RequestJsonFromAiInp
     { role: "user", content: userContent },
   ];
 
-  const content = await fetchOpenRouterCompletion(messages, model);
+  const { content, costUsd, model: usedModel } = await fetchOpenRouterCompletion(messages, model);
 
   const jsonMatch = content.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) return null;
+  if (!jsonMatch) return { data: null, costUsd, model: usedModel };
   const parsed = parseJson<unknown>(jsonrepair(jsonMatch[0]));
-  if (parsed == null) return null;
+  if (parsed == null) return { data: null, costUsd, model: usedModel };
   if (schema) {
     const result = schema.safeParse(parsed);
-    return result.success ? result.data : null;
+    return { data: result.success ? result.data : null, costUsd, model: usedModel };
   }
-  return parsed as T;
+  return { data: parsed as T, costUsd, model: usedModel };
 }

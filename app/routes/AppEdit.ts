@@ -2,7 +2,8 @@ import { html, css } from "/utils/markup";
 import { h } from "preact";
 import type { RoutePropsForPath } from "preact-iso";
 import { useLocation, useRoute } from "preact-iso";
-import { useEffect, useRef, useState } from "preact/hooks";
+import { useSignal } from "@preact/signals";
+import { useEffect, useRef } from "preact/hooks";
 import type { AppEditMessage } from "/types/app-config-types";
 import { isDraftConfig } from "/types/app-config-types";
 import { t } from "/utils/i18n";
@@ -21,6 +22,7 @@ import {
   editError,
   editMode,
   editAiModel,
+  setEditAiModel,
   codeDraft,
   loadEdit,
   sendChatMessage,
@@ -28,8 +30,9 @@ import {
   publishToMyApps,
 } from "/app/stores/appEditStore";
 import {
-  EDIT_AI_MODEL_FLASH,
-  EDIT_AI_MODEL_PRO,
+  EDIT_AI_MODELS,
+  formatAiCostUsd,
+  formatAiRequestStats,
   type EditAiModelKey,
 } from "/utils/ai-models";
 
@@ -40,7 +43,7 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
   const { route } = useLocation();
   const lang = params.lang ?? "en";
   const slug = params.slug ?? "";
-  const [deleting, setDeleting] = useState(false);
+  const deleting = useSignal(false);
 
   useEffect(() => {
     if (slug) void loadEdit(slug);
@@ -54,12 +57,12 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
   const iconSrc = appIconSrc(app?.iconId);
 
   async function handleDelete() {
-    if (!app || deleting) return;
+    if (!app || deleting.value) return;
     const ok = window.confirm(t("Delete \"$title\"? This cannot be undone.", { title: app.title }));
     if (!ok) return;
-    setDeleting(true);
+    deleting.value = true;
     const success = await deleteApp(slug);
-    setDeleting(false);
+    deleting.value = false;
     if (success) route(`/${lang}/`, true);
   }
 
@@ -98,8 +101,8 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
                 ui-button="tertiary square sm"
                 ui-icon="trash"
                 aria-label=${t("Delete")}
-                disabled=${deleting}
-                aria-busy=${deleting}
+                disabled=${deleting.value}
+                aria-busy=${deleting.value}
                 onClick=${() => void handleDelete()}
               ></button>`
             : ""}
@@ -197,14 +200,19 @@ function ModeTabs() {
 }
 
 function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
-  const [draft, setDraft] = useState("");
+  // useSignal (not useState) so store signal updates still re-render this panel.
+  const draft = useSignal("");
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const app = editApp.value;
   const originalPrompt = app?.config.prompt?.trim() ?? "";
   const messages = editMessages.value;
   const sending = editSending.value;
-  const canSend = Boolean(draft.trim()) && !sending;
+  const canSend = Boolean(draft.value.trim()) && !sending;
+  const totalCostUsd = messages.reduce(
+    (sum, m) => sum + (typeof m.costUsd === "number" ? m.costUsd : 0),
+    0,
+  );
 
   const displayMessages: AppEditMessage[] =
     messages.length > 0
@@ -238,22 +246,20 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
 
   function submit(e: Event) {
     e.preventDefault();
-    const text = draft.trim();
-    if (!text || sending) return;
-    setDraft("");
-    requestAnimationFrame(() => {
-      if (inputRef.current) {
-        inputRef.current.style.height = "auto";
+    // Read from the DOM so a stale controlled value can't block the request.
+    const text = (inputRef.current?.value ?? draft.value).trim();
+    if (!text || editSending.value) return;
+    draft.value = "";
+    if (inputRef.current) {
+      inputRef.current.value = "";
+      inputRef.current.style.height = "auto";
+    }
+    void sendChatMessage(slug, text).then((started) => {
+      if (!started && text) {
+        draft.value = text;
+        if (inputRef.current) inputRef.current.value = text;
       }
     });
-    void sendChatMessage(slug, text);
-  }
-
-  function onKeyDown(e: KeyboardEvent) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      submit(e);
-    }
   }
 
   return html`
@@ -271,7 +277,16 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
                 </p>
               </div>`
             : displayMessages.map(
-                (m, i) => html`
+                (m, i) => {
+                  const stats =
+                    m.role === "assistant"
+                      ? formatAiRequestStats({
+                          modelKey: m.modelKey,
+                          durationMs: m.durationMs,
+                          costUsd: m.costUsd,
+                        })
+                      : null;
+                  return html`
                   <div
                     class=${`msg ${m.role === "user" ? "user" : "assistant"}`}
                     style=${`--i: ${i}`}
@@ -280,7 +295,11 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
                       ? html`<p class="msg-label">${t("Original prompt")}</p>`
                       : ""}
                     <div class="bubble">${m.content}</div>
-                  </div>`,
+                    ${stats
+                      ? html`<p class="msg-stats">${stats}</p>`
+                      : ""}
+                  </div>`;
+                },
               )}
           ${sending
             ? html`
@@ -303,13 +322,12 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
             class="composer-input"
             rows="1"
             placeholder=${creating ? t("Create an app for…") : t("e.g. add a dark mode toggle")}
-            value=${draft}
+            value=${draft.value}
             disabled=${sending}
             onInput=${(e: Event) => {
-              setDraft((e.target as HTMLTextAreaElement).value);
+              draft.value = (e.target as HTMLTextAreaElement).value;
               resizeInput();
             }}
-            onKeyDown=${onKeyDown}
           ></textarea>
           <div ui-row="x-between y-center gap-sm">
             <label class="model-picker">
@@ -320,11 +338,16 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
                 disabled=${sending}
                 value=${editAiModel.value}
                 onChange=${(e: Event) => {
-                  editAiModel.value = (e.target as HTMLSelectElement).value as EditAiModelKey;
+                  const next = (e.target as HTMLSelectElement).value;
+                  if (next) setEditAiModel(next as EditAiModelKey);
                 }}
               >
-                <option value=${EDIT_AI_MODEL_FLASH}>${t("Flash")}</option>
-                <option value=${EDIT_AI_MODEL_PRO}>${t("Pro")}</option>
+                ${EDIT_AI_MODELS.map(
+                  (m) => html`
+                    <option value=${m.key} selected=${m.key === editAiModel.value}>
+                      ${m.label}
+                    </option>`,
+                )}
               </select>
             </label>
             <button
@@ -336,7 +359,12 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
             ></button>
           </div>
         </div>
-        <p class="composer-hint">${t("Enter to send · Shift+Enter for a new line")}</p>
+        ${totalCostUsd > 0
+          ? html`
+            <p class="composer-hint">
+              <span class="composer-cost" title=${t("Total AI cost")}>${t("Total")} ${formatAiCostUsd(totalCostUsd)}</span>
+            </p>`
+          : ""}
       </form>
     </div>
   `;
@@ -585,6 +613,19 @@ function style() {
         border-bottom-right-radius: 0.3rem;
       }
 
+      .msg-stats {
+        margin: 0.35rem 0 0;
+        padding: 0 0.15rem;
+        font-size: 0.6875rem;
+        line-height: 1.3;
+        color: var(--neutral-400);
+        font-variant-numeric: tabular-nums;
+      }
+
+      .msg.assistant .msg-stats {
+        text-align: left;
+      }
+
       .msg.assistant .bubble {
         background: var(--white);
         color: var(--neutral-800);
@@ -631,20 +672,31 @@ function style() {
       }
 
       .model-picker {
-        flex: none;
-        width: auto;
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: calc(100% - 2.75rem);
       }
 
       .model-picker select {
-        width: auto;
-        min-width: 5.5rem;
+        width: 100%;
+        max-width: 100%;
+        font-size: 0.75rem;
       }
 
       .composer-hint {
         margin: 0;
-        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
         font-size: 0.6875rem;
         color: var(--neutral-400);
+      }
+
+      .composer-cost {
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.01em;
+        opacity: 0.85;
       }
 
       .sr-only {
