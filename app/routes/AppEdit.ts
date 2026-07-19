@@ -210,7 +210,10 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
   const sending = editSending.value;
   const canSend = Boolean(draft.value.trim()) && !sending;
   const totalCostUsd = messages.reduce(
-    (sum, m) => sum + (typeof m.costUsd === "number" ? m.costUsd : 0),
+    (sum, m) =>
+      sum +
+      (typeof m.costUsd === "number" ? m.costUsd : 0) +
+      (typeof m.iconCostUsd === "number" ? m.iconCostUsd : 0),
     0,
   );
 
@@ -278,12 +281,20 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
               </div>`
             : displayMessages.map(
                 (m, i) => {
-                  const stats =
+                  const textStats =
                     m.role === "assistant"
                       ? formatAiRequestStats({
                           modelKey: m.modelKey,
                           durationMs: m.durationMs,
                           costUsd: m.costUsd,
+                        })
+                      : null;
+                  const iconStats =
+                    m.role === "assistant"
+                      ? formatAiRequestStats({
+                          modelKey: m.iconModelKey,
+                          durationMs: m.iconDurationMs,
+                          costUsd: m.iconCostUsd,
                         })
                       : null;
                   return html`
@@ -295,8 +306,11 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
                       ? html`<p class="msg-label">${t("Original prompt")}</p>`
                       : ""}
                     <div class="bubble">${m.content}</div>
-                    ${stats
-                      ? html`<p class="msg-stats">${stats}</p>`
+                    ${textStats
+                      ? html`<p class="msg-stats">${textStats}</p>`
+                      : ""}
+                    ${iconStats
+                      ? html`<p class="msg-stats">${t("Icon")} · ${iconStats}</p>`
                       : ""}
                   </div>`;
                 },

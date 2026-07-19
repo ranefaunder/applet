@@ -42,11 +42,12 @@ export default {
 
       let iconId = row.icon_id ?? null;
       if (!iconId) {
-        iconId = await generateAppIcon({
+        const iconResult = await generateAppIcon({
           title: config.title,
           description: config.description,
           clientIP: getClientIP(req),
         });
+        iconId = iconResult?.iconId ?? null;
       }
 
       dbUpdateApp(row.id, { isDraft: false, iconId: iconId ?? undefined });

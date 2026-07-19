@@ -143,13 +143,20 @@ export default {
       const storedModelRef = resolveStoredModelRef({ requestedKey: modelKey, modelUsed });
 
       let iconId: string | null | undefined;
+      let iconModelKey: string | null = null;
+      let iconCostUsd: number | null = null;
+      let iconDurationMs: number | null = null;
       if (needsNewIcon) {
-        iconId = await generateAppIcon({
+        const iconResult = await generateAppIcon({
           title: nextConfig.title,
           description: nextConfig.description,
           clientIP,
         });
-        if (iconId) {
+        if (iconResult) {
+          iconId = iconResult.iconId;
+          iconModelKey = iconResult.model;
+          iconCostUsd = iconResult.costUsd;
+          iconDurationMs = iconResult.durationMs;
           assistantReply = `${assistantReply}\n\n${t("I updated the app icon.", language)}`;
         } else {
           assistantReply = `${assistantReply}\n\n${t("I couldn't update the app icon right now. Try again in a moment.", language)}`;
@@ -174,6 +181,9 @@ export default {
         modelKey: storedModelRef,
         costUsd,
         durationMs,
+        iconModelKey,
+        iconCostUsd,
+        iconDurationMs,
       });
 
       const updated = dbGetAppBySlug(slug)!;

@@ -4,7 +4,7 @@ import { OPENROUTER_CONFIG, requestJsonFromAi } from "/utils/ai-core.server";
 import { checkRateLimit } from "/utils/rate-limit.server";
 
 const IMAGE_API_URL = "https://openrouter.ai/api/v1/images";
-const IMAGE_MODEL = "google/gemini-3.1-flash-lite-image";
+export const APP_ICON_IMAGE_MODEL = "google/gemini-3.1-flash-lite-image";
 const IMAGE_DIR = "./static/app-icons";
 const IMAGE_QUALITY = 88;
 const IMAGE_RATE_LIMIT_MAX = 30;
@@ -45,41 +45,70 @@ const iconBriefSchema = z.object({
 
 type IconBrief = z.infer<typeof iconBriefSchema>;
 
+export type AppIconGenerationResult = {
+  iconId: string;
+  /** Image model OpenRouter id. */
+  model: string;
+  /** Combined cost for brief + image, if known. */
+  costUsd: number | null;
+  durationMs: number;
+};
+
+function parseUsageCost(usage: unknown): number | null {
+  if (!usage || typeof usage !== "object") return null;
+  const cost = (usage as { cost?: unknown }).cost;
+  return typeof cost === "number" && Number.isFinite(cost) ? cost : null;
+}
+
+function addCosts(a: number | null, b: number | null): number | null {
+  if (a == null && b == null) return null;
+  return (a ?? 0) + (b ?? 0);
+}
+
 export async function generateAppIcon(opts: {
   title: string;
   description: string;
   clientIP: string;
-}): Promise<string | null> {
+}): Promise<AppIconGenerationResult | null> {
+  const startedAt = Date.now();
   try {
     if (!checkRateLimit(opts.clientIP, "app_icon", IMAGE_RATE_LIMIT_MAX, IMAGE_RATE_LIMIT_WINDOW_MINUTES)) {
       console.warn("App icon generation rate limited");
       return null;
     }
 
-    const brief = await designIconBrief(opts.title, opts.description);
-    if (!brief) {
+    const briefResult = await designIconBrief(opts.title, opts.description);
+    if (!briefResult) {
       console.error("App icon brief generation failed");
       return null;
     }
 
-    const prompt = buildImagePrompt(brief);
-    const b64 = await fetchImageFromOpenRouter(prompt);
-    if (!b64) return null;
+    const prompt = buildImagePrompt(briefResult.brief);
+    const imageResult = await fetchImageFromOpenRouter(prompt);
+    if (!imageResult) return null;
 
-    const imageBuffer = Buffer.from(b64, "base64");
+    const imageBuffer = Buffer.from(imageResult.b64, "base64");
     const optimized = await optimizeIcon(imageBuffer);
     const iconId = crypto.randomUUID().replace(/-/g, "").substring(0, 12);
 
     mkdirSync(IMAGE_DIR, { recursive: true });
     await Bun.write(`${IMAGE_DIR}/${iconId}.webp`, optimized);
-    return iconId;
+    return {
+      iconId,
+      model: imageResult.model,
+      costUsd: addCosts(briefResult.costUsd, imageResult.costUsd),
+      durationMs: Date.now() - startedAt,
+    };
   } catch (error) {
     console.error("Error generating app icon:", error);
     return null;
   }
 }
 
-async function designIconBrief(title: string, description: string): Promise<IconBrief | null> {
+async function designIconBrief(
+  title: string,
+  description: string,
+): Promise<{ brief: IconBrief; costUsd: number | null } | null> {
   const systemPrompt = `You design app icons. Given an app, decide the best icon for it — subject, style, colors, composition, materials, lighting, mood — entirely based on what fits this app.
 
 One hard constraint: the icon must work as a small iPhone home-screen app icon — still clear and recognizable at ~60pt (~120px). Design with that scale in mind.
@@ -91,12 +120,13 @@ What it does: ${description.trim() || "(no description)"}
 
 Decide the icon for this app and return JSON with: subject, style, background, colors, composition, materialsAndLighting, mood, avoid, renderPrompt.`;
 
-  const { data } = await requestJsonFromAi({
+  const { data, costUsd } = await requestJsonFromAi({
     systemPrompt,
     userPrompt,
     schema: iconBriefSchema,
   });
-  return data;
+  if (!data) return null;
+  return { brief: data, costUsd };
 }
 
 function buildImagePrompt(brief: IconBrief): string {
@@ -119,12 +149,14 @@ function buildImagePrompt(brief: IconBrief): string {
   ].join("\n");
 }
 
-async function fetchImageFromOpenRouter(prompt: string): Promise<string | null> {
+async function fetchImageFromOpenRouter(
+  prompt: string,
+): Promise<{ b64: string; costUsd: number | null; model: string } | null> {
   const response = await fetch(IMAGE_API_URL, {
     method: "POST",
     headers: OPENROUTER_CONFIG.headers,
     body: JSON.stringify({
-      model: IMAGE_MODEL,
+      model: APP_ICON_IMAGE_MODEL,
       prompt,
       aspect_ratio: "1:1",
       resolution: "1K",
@@ -140,6 +172,8 @@ async function fetchImageFromOpenRouter(prompt: string): Promise<string | null> 
 
   const data = (await response.json()) as {
     error?: { message?: string };
+    model?: string;
+    usage?: unknown;
     data?: Array<{ b64_json?: string }>;
   };
 
@@ -149,7 +183,13 @@ async function fetchImageFromOpenRouter(prompt: string): Promise<string | null> 
   }
 
   const b64 = data.data?.[0]?.b64_json;
-  return typeof b64 === "string" && b64.length > 0 ? b64 : null;
+  if (typeof b64 !== "string" || b64.length === 0) return null;
+
+  return {
+    b64,
+    costUsd: parseUsageCost(data.usage),
+    model: typeof data.model === "string" && data.model ? data.model : APP_ICON_IMAGE_MODEL,
+  };
 }
 
 async function optimizeIcon(imageBuffer: Buffer): Promise<Buffer> {

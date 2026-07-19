@@ -44,12 +44,18 @@ export type AppEditMessage = {
   role: AppEditRole;
   content: string;
   createdAt: string;
-  /** Edit-picker model key used for this assistant reply, if any. */
+  /** Edit-picker model key / OpenRouter id used for this assistant reply, if any. */
   modelKey?: string | null;
-  /** OpenRouter usage cost in USD for this reply, if any. */
+  /** OpenRouter usage cost in USD for the text edit reply, if any. */
   costUsd?: number | null;
-  /** Wall time for the AI request in ms, if any. */
+  /** Wall time for the text AI request in ms, if any. */
   durationMs?: number | null;
+  /** Image model used for launcher icon generation in this reply, if any. */
+  iconModelKey?: string | null;
+  /** Combined icon brief + image cost in USD, if any. */
+  iconCostUsd?: number | null;
+  /** Wall time for icon generation in ms, if any. */
+  iconDurationMs?: number | null;
 };
 
 export function parseAppConfig(json: string): AppConfig | null {

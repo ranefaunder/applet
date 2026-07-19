@@ -207,6 +207,7 @@ export const translations = {
   "AI model": { fi: "Tekoälymalli" },
   "Total": { fi: "Yhteensä" },
   "Total AI cost": { fi: "Tekoälyn kokonaishinta" },
+  "Icon": { fi: "Kuvake" },
   "Invalid AI model.": { fi: "Virheellinen tekoälymalli." },
   "Building": { fi: "Rakenteilla" },
   "Describe your app": { fi: "Kuvaile appisi" },
