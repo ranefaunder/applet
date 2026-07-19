@@ -42,6 +42,8 @@ server/database/app.db
 
 /static/recipes/*.webp
 /static/app-icons/*.webp
+/static/app-icons/*.svg
 /static/books
 /backup
 /server/database/backup
+static/app-icons

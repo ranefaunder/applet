@@ -49,7 +49,7 @@ function lang(): string {
 function resetEditRequestFlags(): void {
   editSending.value = false;
   editSavingCode.value = false;
-  editPublishing.value = false;
+  editRegeneratingIcon.value = false;
 }
 
 /** Seed from the SSR snapshot so a direct page load renders without a flash. */
@@ -167,25 +167,30 @@ export async function saveCode(slug: string): Promise<void> {
   }
 }
 
-export const editPublishing = signal(false);
+export const editRegeneratingIcon = signal(false);
 
-/** Promote a ready draft into My Apps on the home screen. */
-export async function publishToMyApps(slug: string): Promise<boolean> {
-  if (editPublishing.value) return false;
+/** Regenerate the launcher icon on explicit user request. */
+export async function regenerateIcon(slug: string): Promise<boolean> {
+  if (editRegeneratingIcon.value) return false;
   editError.value = null;
-  editPublishing.value = true;
+  editRegeneratingIcon.value = true;
   try {
-    const result = await apiFetch<{ app: AppDetail }>(`/api/${lang()}/app/publish`, {
-      method: "POST",
-      body: JSON.stringify({ slug }),
-    });
+    const result = await apiFetch<{ app: AppDetail; messages: AppEditMessage[] }>(
+      `/api/${lang()}/app/regenerate-icon`,
+      {
+        method: "POST",
+        body: JSON.stringify({ slug }),
+      },
+    );
     if (!result.success) {
       editError.value = result.error.message ?? result.error.code;
       return false;
     }
     editApp.value = result.data.app;
+    editMessages.value = result.data.messages;
     return true;
   } finally {
-    editPublishing.value = false;
+    editRegeneratingIcon.value = false;
   }
 }
+

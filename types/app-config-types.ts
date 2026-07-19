@@ -10,7 +10,11 @@ export const appConfigSchema = z.object({
   version: z.literal(2),
   status: z.enum(["ready", "draft", "error"]),
   prompt: z.string(),
-  title: z.string().min(1),
+  /**
+   * Launcher label. New apps are generated with max 12 chars; longer values
+   * may exist on older apps and are accepted when loading.
+   */
+  title: z.string().min(1).max(80),
   description: z.string(),
   /** @deprecated Launcher uses AI-generated icon files; kept for older configs. */
   emoji: z.string().max(8).optional(),
@@ -31,9 +35,9 @@ export type AppDetail = {
   ownerId: string;
   config: AppConfig;
   canEdit: boolean;
-  /** Home-screen placement: true = Drafts, false = My Apps */
+  /** @deprecated Draft placement removed; always false for new apps. */
   isDraft: boolean;
-  /** File id under /static/app-icons/{iconId}.webp */
+  /** Launcher icon reference under /static/app-icons/ (e.g. "abc123.svg"; legacy ids map to .webp) */
   iconId: string | null;
 };
 

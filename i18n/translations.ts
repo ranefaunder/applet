@@ -208,6 +208,11 @@ export const translations = {
   "Total": { fi: "Yhteensä" },
   "Total AI cost": { fi: "Tekoälyn kokonaishinta" },
   "Icon": { fi: "Kuvake" },
+  "Generate new icon": { fi: "Luo uusi kuvake" },
+  "Generating icon…": { fi: "Luodaan kuvaketta…" },
+  "Could not generate the app icon. Try again.": {
+    fi: "App-kuvakkeen luonti epäonnistui. Yritä uudelleen.",
+  },
   "Invalid AI model.": { fi: "Virheellinen tekoälymalli." },
   "Building": { fi: "Rakenteilla" },
   "Describe your app": { fi: "Kuvaile appisi" },

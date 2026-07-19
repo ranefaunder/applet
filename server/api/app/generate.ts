@@ -1,39 +1,52 @@
 import type { BunRequest } from "bun";
 import { withAuth } from "/utils/auth.server";
 import { apiError, apiSuccess } from "/utils/api.server";
-import { dbCreateApp, dbGenerateAppSlug } from "/server/database/queries/apps";
-import { dbAddAppMessage } from "/server/database/queries/app-messages";
-import type { AppConfig } from "/types/app-config-types";
+import { dbCreateApp, dbGenerateAppSlug, dbGetAppBySlug, dbUpdateApp } from "/server/database/queries/apps";
+import { dbAddAppMessage, dbListAppMessages } from "/server/database/queries/app-messages";
+import { generateAppConfig } from "/utils/ai-apps.server";
+import { generateAppIcon } from "/utils/ai-app-icons.server";
+import { apiErrorFromAi } from "/utils/ai-api.server";
+import { resolveEditAiModel } from "/utils/ai-core.server";
+import { DEFAULT_EDIT_AI_MODEL, isEditAiModelKey, resolveStoredModelRef } from "/utils/ai-models";
+import type { AppDetail } from "/types/app-config-types";
 import type { Language } from "/types/i18n-types";
+import { getLang } from "/utils/lang";
 import { t } from "/utils/i18n";
 import { checkRateLimit } from "/utils/rate-limit.server";
 import { getClientIP } from "/utils/request.server";
 
-function buildEmptyDraftConfig(title: string): AppConfig {
-  return {
-    version: 2,
-    status: "draft",
-    prompt: "",
-    title,
-    description: "",
-    tagName: "applet-draft",
-    code: "// draft",
-  };
-}
-
-/** Creates an empty draft app with a welcome chat message, then client opens the editor. */
+/**
+ * Create a finished app from the first user prompt.
+ * No empty draft row — the app appears in My Apps immediately (with icon).
+ */
 export default {
   async POST(req: BunRequest) {
     return withAuth(req, async (user) => {
-      let body: unknown = {};
+      let body: unknown;
       try {
         body = await req.json();
       } catch {
-        // empty body is fine
+        return apiError({ code: "INVALID_JSON" });
       }
 
-      const b = body as { language?: string };
-      const language = (b.language || "en") as Language;
+      const b = body as { message?: string; model?: string };
+      const language = (getLang(req.url) ?? "en") as Language;
+      const message = typeof b.message === "string" ? b.message.trim() : "";
+      const modelKey = b.model == null || b.model === ""
+        ? DEFAULT_EDIT_AI_MODEL
+        : isEditAiModelKey(b.model)
+          ? b.model
+          : null;
+
+      if (!modelKey) {
+        return apiError({ code: "INVALID_MODEL", message: t("Invalid AI model.", language) });
+      }
+      if (!message || message.length > 2000) {
+        return apiError({
+          code: "INVALID_PROMPT",
+          message: t("Describe the change you want.", language),
+        });
+      }
 
       const clientIP = getClientIP(req);
       if (!checkRateLimit(clientIP, "app_generate", 20, 60)) {
@@ -44,33 +57,96 @@ export default {
         });
       }
 
-      const title = t("New App", language);
-      const config = buildEmptyDraftConfig(title);
+      const model = resolveEditAiModel(modelKey);
+      const aiStartedAt = Date.now();
+      let generated;
+      try {
+        generated = await generateAppConfig(message, language, model);
+      } catch (err) {
+        const aiError = apiErrorFromAi(err, language);
+        if (aiError) return aiError;
+        throw err;
+      }
+      if (!generated) {
+        return apiError({
+          code: "GENERATION_FAILED",
+          message: t("Could not create app. Try again.", language),
+          status: 500,
+        });
+      }
+
+      const durationMs = Date.now() - aiStartedAt;
+      const storedModelRef = resolveStoredModelRef({
+        requestedKey: modelKey,
+        modelUsed: generated.modelUsed,
+      });
+
       const id = crypto.randomUUID();
       const slug = dbGenerateAppSlug();
-
       dbCreateApp({
         id,
         ownerId: user.id,
-        title: config.title,
-        description: config.description,
+        title: generated.config.title,
+        description: generated.config.description,
         slug,
-        configJson: JSON.stringify(config),
-        isDraft: true,
+        configJson: JSON.stringify(generated.config),
+        isDraft: false,
       });
+
+      const iconResult = await generateAppIcon({
+        title: generated.config.title,
+        description: generated.config.description,
+        clientIP,
+      });
+      if (iconResult) {
+        dbUpdateApp(id, { iconId: iconResult.iconId });
+      }
+
+      let assistantReply = t("I built \"$title\" for you. Open the app or tell me what to change.", {
+        title: generated.config.title,
+      }, language);
+      if (iconResult) {
+        assistantReply = `${assistantReply}\n\n${t("I updated the app icon.", language)}`;
+      }
 
       dbAddAppMessage({
         id: crypto.randomUUID(),
         appId: id,
+        role: "user",
+        content: message,
+      });
+      dbAddAppMessage({
+        id: crypto.randomUUID(),
+        appId: id,
         role: "assistant",
-        content: t(
-          "Hey — I'm Abblet.\n\nTell me what kind of little app would help you. Just write it like you'd say it out loud — a couple of words is enough.\n\nFor example: shopping list, habit tracker, workout log, recipe book, budget, or mood journal.\n\nI do best with small, personal tools. What do you need?",
-          language,
-        ),
+        content: assistantReply,
+        modelKey: storedModelRef,
+        costUsd: generated.costUsd,
+        durationMs,
+        iconModelKey: iconResult?.model ?? null,
+        iconCostUsd: iconResult?.costUsd ?? null,
+        iconDurationMs: iconResult?.durationMs ?? null,
       });
 
+      const row = dbGetAppBySlug(slug)!;
+      const detail: AppDetail = {
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        description: row.description,
+        visibility: row.visibility,
+        ownerId: row.owner_id,
+        config: generated.config,
+        canEdit: true,
+        isDraft: false,
+        iconId: row.icon_id ?? null,
+      };
+
       return apiSuccess({
-        data: { id, slug, title: config.title, isDraft: true },
+        data: {
+          app: detail,
+          messages: dbListAppMessages(id),
+        },
         status: 201,
       });
     });

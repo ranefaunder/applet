@@ -22,7 +22,7 @@ import appEdit from "./api/app/edit";
 import appUpdateCode from "./api/app/update-code";
 import appEditHistory from "./api/app/edit-history";
 import appList from "./api/app/list";
-import appPublish from "./api/app/publish";
+import appRegenerateIcon from "./api/app/regenerate-icon";
 import appDelete from "./api/app/delete";
 import meta from "./api/meta";
 
@@ -43,7 +43,7 @@ const server = Bun.serve({
     "/api/:lang/app/edit": appEdit,
     "/api/:lang/app/update-code": appUpdateCode,
     "/api/:lang/app/edit-history": appEditHistory,
-    "/api/:lang/app/publish": appPublish,
+    "/api/:lang/app/regenerate-icon": appRegenerateIcon,
     "/api/:lang/app/delete": appDelete,
     "/api/:lang/app/list": appList,
     "/api/:lang/user/me": userMe,

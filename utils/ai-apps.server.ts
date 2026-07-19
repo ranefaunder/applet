@@ -4,11 +4,27 @@ import { appConfigSchema, type AppConfig, type AppEditMessage } from "/types/app
 import type { Language } from "/types/i18n-types";
 import { AVAILABLE_LANGUAGES } from "/i18n/languages";
 
-const aiAppSchema = appConfigSchema.omit({ version: true, status: true, prompt: true, emoji: true });
+/** Home-screen label hard limit (must fit under the icon). */
+export const APP_TITLE_MAX_LENGTH = 12;
+
+function clampAppTitle(title: string): string {
+  const trimmed = title.trim().replace(/\s+/g, " ");
+  if (!trimmed) return "App";
+  return trimmed.length <= APP_TITLE_MAX_LENGTH
+    ? trimmed
+    : trimmed.slice(0, APP_TITLE_MAX_LENGTH).trimEnd() || "App";
+}
+
+/** Accept a slightly longer AI title, then clamp — so over-long replies don't fail generation. */
+const aiTitleSchema = z.string().min(1).max(80).transform((t) => clampAppTitle(t));
+
+const aiAppSchema = appConfigSchema
+  .omit({ version: true, status: true, prompt: true, emoji: true })
+  .extend({ title: aiTitleSchema });
 
 const aiEditSchema = z.object({
   summary: z.string().min(1),
-  title: z.string().min(1).max(80).optional(),
+  title: aiTitleSchema.optional(),
   description: z.string().optional(),
   code: z.string().min(1),
   /** True only when the user clearly asked to change the existing launcher icon. */
@@ -174,7 +190,7 @@ export async function generateAppConfig(
   const systemPrompt = `You build small personal apps for Abblet. Each app is a single, self-contained Web Component (custom element) written in vanilla JavaScript.
 
 Return one JSON object with:
-- title: short app name (max 60 chars), not the raw user prompt
+- title: short app name, MAXIMUM 12 characters (including spaces). Must fit under a phone home-screen icon — prefer 1–2 words (e.g. "Budget", "Ostoslista", "Run Log"). Never use the raw user prompt if it is longer than 12 chars; invent a short label instead.
 - description: 1-2 sentences describing what the app does
 - tagName: valid custom element name, lowercase with at least one hyphen (e.g. "run-log", "wine-journal")
 - code: complete JavaScript that registers the custom element
@@ -199,6 +215,7 @@ ${designGuidelines(langName)}`;
       status: "ready",
       prompt,
       ...generated,
+      title: generated.title,
     },
     costUsd,
     modelUsed,
@@ -232,10 +249,10 @@ You will receive the current full source code and a conversation of change reque
 
 Return one JSON object with:
 - summary: 1-2 sentences in ${langName} describing exactly what you changed (shown in the chat)
-- title: (optional) updated short app name, only if the change warrants it
+- title: (optional) updated short app name, MAXIMUM 12 characters (including spaces), only if the change warrants it
 - description: (optional) updated 1-2 sentence description, only if it changed
 - code: the complete, updated JavaScript that registers the custom element
-- needsNewIcon: boolean — your judgment of whether the user clearly asked to change or regenerate the existing home-screen / launcher app icon. true only for an explicit icon request (e.g. "make a new icon", "vaihda kuvake"). false for everything else — renames, theme changes, features, bugfixes, UI tweaks. Never invent an icon request. The first launcher icon is created when the user adds the app to My Apps — do not promise an icon before that. When you set needsNewIcon true, the server regenerates the icon after your reply.
+- needsNewIcon: boolean — your judgment of whether the user clearly asked to change or regenerate the existing home-screen / launcher app icon. true only for an explicit icon request (e.g. "make a new icon", "vaihda kuvake"). false for everything else — renames, theme changes, features, bugfixes, UI tweaks. Never invent an icon request. The first launcher icon is created with the app; regenerating happens only on an explicit request (or the editor icon button). When you set needsNewIcon true, the server regenerates the icon after your reply.
 
 ## Hard constraints
 - Keep the EXACT same custom element tagName: "${current.tagName}". The code must still call customElements.define("${current.tagName}", ...). Do NOT rename it.
@@ -285,7 +302,7 @@ Return the complete updated code and a short summary of what you changed.`;
     ...current,
     status: "ready",
     code: generated.code,
-    title: generated.title?.trim() || current.title,
+    title: generated.title ? generated.title : clampAppTitle(current.title),
     description: generated.description?.trim() || current.description,
   };
 

@@ -113,7 +113,8 @@ export default {
         assistantReply = t("I built \"$title\" for you. Open the app or tell me what to change.", {
           title: generated.config.title,
         }, language);
-        // First launcher icon is created only on "Add to My Apps".
+        // Legacy empty drafts: finish into My Apps and generate icon below.
+        needsNewIcon = true;
       } else {
         const history = dbListAppMessages(row.id);
         let result;
@@ -135,7 +136,7 @@ export default {
         costUsd = result.costUsd;
         modelUsed = result.modelUsed;
         assistantReply = result.summary;
-        // Icon change only when the model flags it, and only if a launcher icon already exists.
+        // Regenerates only when an icon already exists and the model flags an explicit request.
         needsNewIcon = Boolean(row.icon_id) && result.needsNewIcon;
       }
 
@@ -167,8 +168,8 @@ export default {
         title: nextConfig.title,
         description: nextConfig.description,
         configJson: JSON.stringify(nextConfig),
-        // Stay in Drafts on the home screen after first build.
-        isDraft: creating ? true : undefined,
+        // Legacy draft rows become My Apps immediately after first build.
+        isDraft: creating ? false : undefined,
         ...(iconId ? { iconId } : {}),
       });
 

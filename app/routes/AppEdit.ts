@@ -18,16 +18,16 @@ import {
   editLoading,
   editSending,
   editSavingCode,
-  editPublishing,
   editError,
   editMode,
   editAiModel,
   setEditAiModel,
+  editRegeneratingIcon,
   codeDraft,
   loadEdit,
   sendChatMessage,
   saveCode,
-  publishToMyApps,
+  regenerateIcon,
 } from "/app/stores/appEditStore";
 import {
   EDIT_AI_MODELS,
@@ -52,8 +52,7 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
   const app = editApp.value;
   const loading = editLoading.value;
   const creating = app != null && isDraftConfig(app.config);
-  const canAddToHome = app != null && app.canEdit && !creating && app.isDraft;
-  const publishing = editPublishing.value;
+  const regeneratingIcon = editRegeneratingIcon.value;
   const iconSrc = appIconSrc(app?.iconId);
 
   async function handleDelete() {
@@ -87,13 +86,24 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
                     aria-hidden="true"
                   >${draftLetter(app.title)}</span>`}
               <span class="app-chip-title">${app.title}</span>
-              ${creating || app.isDraft
-                ? html`<span class="badge">${creating ? t("Building") : t("Draft")}</span>`
-                : ""}`
+              ${creating ? html`<span class="badge">${t("Building")}</span>` : ""}`
             : html`<span class="app-chip-title muted">${t("Editor")}</span>`}
         </div>
 
         <div ui-row="y-center gap-xs">
+          ${app?.canEdit && !creating
+            ? html`
+              <button
+                type="button"
+                ui-button="tertiary square sm"
+                ui-icon="image"
+                title=${t("Generate new icon")}
+                aria-label=${t("Generate new icon")}
+                disabled=${regeneratingIcon}
+                aria-busy=${regeneratingIcon}
+                onClick=${() => void regenerateIcon(slug)}
+              ></button>`
+            : ""}
           ${app?.canEdit
             ? html`
               <button
@@ -116,22 +126,6 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
               : ""}
         </div>
       </header>
-
-      ${canAddToHome
-        ? html`
-          <div class="draft-banner" ui-row="x-between y-center gap-md wrap" ui-padding="md">
-            <p>${t("This app is still a draft. Add it to My Apps when you're ready.")}</p>
-            <button
-              type="button"
-              ui-button="primary sm"
-              disabled=${publishing}
-              aria-busy=${publishing}
-              onClick=${() => void publishToMyApps(slug)}
-            >
-              ${publishing ? t("Adding…") : t("Add to My Apps")}
-            </button>
-          </div>`
-        : ""}
 
       ${loading && !app
         ? html`
@@ -516,21 +510,6 @@ function style() {
         font-weight: 700;
         letter-spacing: 0.04em;
         text-transform: uppercase;
-      }
-
-      .draft-banner {
-        flex: none;
-        background: color-mix(in oklab, var(--primary-50) 70%, white);
-        border-bottom: 1px solid var(--primary-100);
-      }
-
-      .draft-banner p {
-        margin: 0;
-        flex: 1;
-        min-width: 12rem;
-        font-size: 0.875rem;
-        color: var(--neutral-700);
-        line-height: 1.4;
       }
 
       .state {

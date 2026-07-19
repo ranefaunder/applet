@@ -26,7 +26,8 @@ fi
 
 echo "🎨 Downloading app icons..."
 mkdir -p static/app-icons
-rsync -avz --ignore-existing "${REMOTE}:${APP}/static/app-icons/"*.webp static/app-icons/ || {
+rsync -avz --ignore-existing "${REMOTE}:${APP}/static/app-icons/"*.webp static/app-icons/ 2>/dev/null
+rsync -avz --ignore-existing "${REMOTE}:${APP}/static/app-icons/"*.svg static/app-icons/ 2>/dev/null || {
   echo "⚠️  Warning: Failed to download app icons"
 }
 

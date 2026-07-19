@@ -25,6 +25,6 @@ export interface AppSummary {
   remixCount: number;
   updatedAt: string;
   isDraft: boolean;
-  /** File id under /static/app-icons/{iconId}.webp */
+  /** Launcher icon reference under /static/app-icons/ (e.g. "abc123.svg"; legacy ids map to .webp) */
   iconId: string | null;
 }

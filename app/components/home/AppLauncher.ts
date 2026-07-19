@@ -11,7 +11,7 @@ export default function AppLauncher() {
   const { path } = useLocation();
   const lang = getLang(path ?? "") ?? "en";
   const loggedInUser = user.value;
-  const readyApps = apps.value.filter((app) => !app.isDraft);
+  const readyApps = apps.value;
 
   useEffect(() => {
     if (loggedInUser) {

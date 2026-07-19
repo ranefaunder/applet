@@ -28,7 +28,13 @@ export async function getMeta(req: BunRequest): Promise<string> {
 
   return /*html*/ `
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Abblet" />
+    <meta name="format-detection" content="telephone=no, date=no, email=no, address=no" />
+    <meta name="color-scheme" content="light" />
     <title>${title}</title>
     <meta name="description" content="${description}" />
     <meta property="og:type" content="website" />
@@ -45,7 +51,8 @@ export async function getMeta(req: BunRequest): Promise<string> {
     <link rel="icon" type="image/png" sizes="16x16" href="${escapeHtmlAttribute(`${staticRoot}/favicons/favicon-16x16.png`)}" />
     <link rel="apple-touch-icon" sizes="180x180" href="${escapeHtmlAttribute(`${staticRoot}/favicons/apple-touch-icon.png`)}" />
     <link rel="manifest" href="${escapeHtmlAttribute(`/${lang}/site.webmanifest`)}" />
-    <meta name="theme-color" content="#f4f2f8" />
+    <meta name="theme-color" content="#1a1848" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1a1848" />
     ${Object.keys(AVAILABLE_LANGUAGES).map((code) => {
       const rest = pathname.replace(/^\/[^/]+/, "") || "/";
       return `<link rel="alternate" hreflang="${code}" href="${escapeHtmlAttribute(`${origin}/${code}${rest === "/" ? "/" : rest}`)}" />`;

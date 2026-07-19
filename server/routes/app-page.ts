@@ -7,6 +7,7 @@ import { canViewApp } from "/utils/app-access.server";
 import { escapeHtmlAttribute, escapeHtmlTextContent } from "/utils/sanitize.server";
 import { isDraftConfig, parseAppConfig } from "/types/app-config-types";
 import { appModuleUrl } from "/utils/app-url";
+import { appIconMimeType, appIconPngSrc, appIconSrc } from "/utils/app-icon";
 
 type LangAppRequest = BunRequest<"/:lang/app/:slug">;
 type ShortAppRequest = BunRequest<"/:appId">;
@@ -20,8 +21,8 @@ type AppModuleRequest =
 type AppRunRedirectRequest = BunRequest<"/:lang/app/:slug/run">;
 
 type AppAccess =
-  | { kind: "ready"; lang: Language; slug: string; title: string; tagName: string }
-  | { kind: "building"; lang: Language; slug: string; title: string }
+  | { kind: "ready"; lang: Language; slug: string; title: string; tagName: string; iconId: string | null }
+  | { kind: "building"; lang: Language; slug: string; title: string; iconId: string | null }
   | { kind: "error"; status: number };
 
 const BUILDING_COPY: Record<Language, { building: string; buildingHint: string }> = {
@@ -73,9 +74,10 @@ function resolveAppAccess(lang: Language, slug: string, req: BunRequest): AppAcc
 
   const config = parseAppConfig(row.config_json);
   const isOwner = user?.id === row.owner_id;
+  const iconId = row.icon_id ?? null;
   if (!config || isDraftConfig(config)) {
     if (!isOwner) return { kind: "error", status: 404 };
-    return { kind: "building", lang, slug, title: row.title };
+    return { kind: "building", lang, slug, title: row.title, iconId };
   }
 
   return {
@@ -84,6 +86,7 @@ function resolveAppAccess(lang: Language, slug: string, req: BunRequest): AppAcc
     slug,
     title: row.title,
     tagName: config.tagName,
+    iconId,
   };
 }
 
@@ -135,6 +138,18 @@ const PAGE_STYLES = `
   .state .hint { margin-top: 8px; font-size: 14px; }
 `;
 
+/** Per-app favicon + home-screen icon links for the standalone app document. */
+function iconHeadTags(iconId: string | null): string {
+  const svgSrc = appIconSrc(iconId);
+  if (!svgSrc) return "";
+  const mime = appIconMimeType(iconId) ?? "image/svg+xml";
+  const pngSrc = appIconPngSrc(iconId) ?? svgSrc;
+  return [
+    `<link rel="icon" type="${escapeHtmlAttribute(mime)}" href="${escapeHtmlAttribute(svgSrc)}" />`,
+    `<link rel="apple-touch-icon" href="${escapeHtmlAttribute(pngSrc)}" />`,
+  ].join("\n    ");
+}
+
 function renderAppPage(access: AppAccess): Response {
   if (access.kind === "error") {
     return new Response("Not Found", { status: access.status });
@@ -148,6 +163,7 @@ function renderAppPage(access: AppAccess): Response {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>${escapeHtmlTextContent(access.title)}</title>
+    ${iconHeadTags(access.iconId)}
     <style>${PAGE_STYLES}</style>
   </head>
   <body>
@@ -187,6 +203,7 @@ function renderAppPage(access: AppAccess): Response {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <title>${escapeHtmlTextContent(access.title)}</title>
+    ${iconHeadTags(access.iconId)}
     <style>${PAGE_STYLES}</style>
   </head>
   <body>

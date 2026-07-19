@@ -49,13 +49,6 @@ export const dbListUserApps = (ownerId: string): AppSummary[] =>
       FROM apps a
       LEFT JOIN users u ON u.id = a.owner_id
       WHERE a.owner_id = ?
-        AND NOT (
-          a.is_draft = 1
-          AND NOT EXISTS (
-            SELECT 1 FROM app_edit_messages m
-            WHERE m.app_id = a.id AND m.role = 'user'
-          )
-        )
       ORDER BY a.updated_at DESC
     `)
     .all(ownerId)
@@ -99,7 +92,7 @@ export const dbCreateApp = (data: {
       data.slug,
       data.configJson,
       data.sourceAppId ?? null,
-      data.isDraft === false ? 0 : 1,
+      data.isDraft === true ? 1 : 0,
       now,
       now,
     );

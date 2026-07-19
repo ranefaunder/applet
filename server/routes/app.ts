@@ -51,6 +51,44 @@ export default async function (req: BunRequest<"/:lang/"> | BunRequest<"/:lang/*
             font-family: "Noto Serif";
             font-display: swap;
           }
+
+          /* App shell: feel native, not like a zoomable website. */
+          html, body {
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            overscroll-behavior: none;
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+          }
+          body {
+            /* Disables double-tap zoom; pinch zoom still possible where supported. */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            user-select: none;
+            -webkit-user-select: none;
+          }
+          #app {
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            overscroll-behavior: none;
+          }
+          /* Allow selecting/editing real content fields. */
+          input, textarea, select, [contenteditable="true"] {
+            user-select: text;
+            -webkit-user-select: text;
+            -webkit-touch-callout: default;
+          }
+          a, button, [role="button"], [ui-button], summary {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+          }
+          img, svg {
+            -webkit-user-drag: none;
+            user-select: none;
+          }
         </style>
         <link rel="stylesheet" href="${escapeHtmlAttribute(`${staticRoot}/styles/faunder-ui.css`)}" />
         <link rel="stylesheet" href="${escapeHtmlAttribute(`${staticRoot}/styles/style.css`)}" />
@@ -67,6 +105,10 @@ export default async function (req: BunRequest<"/:lang/"> | BunRequest<"/:lang/*
   `;
 
   return new Response(html, {
-    headers: { "Content-Type": "text/html; charset=utf-8" },
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      // Avoid bfcache restoring a zoomed/scrolled web-document state.
+      "Cache-Control": "no-store",
+    },
   });
 }
