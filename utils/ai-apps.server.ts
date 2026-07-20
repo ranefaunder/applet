@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { requestJsonFromAi } from "/utils/ai-core.server";
+import { applyReplacements } from "/utils/code-patch.server";
 import { appConfigSchema, type AppConfig, type AppEditMessage } from "/types/app-config-types";
 import type { Language } from "/types/i18n-types";
 import { AVAILABLE_LANGUAGES } from "/i18n/languages";
@@ -39,7 +40,31 @@ const aiRenameSchema = z.object({
   description: z.string().min(1).max(500),
 });
 
-const aiEditSchema = z.object({
+const codeReplacementSchema = z.object({
+  /** Exact substring to find in the current source (must be unique unless replaceAll). */
+  old: z.string().min(1),
+  /** Replacement text (empty string deletes the match). */
+  new: z.string(),
+  /** Replace every occurrence of old (default: exactly one match required). */
+  replaceAll: z.boolean().optional(),
+});
+
+/** Model chooses patch (search-replace) or full file rewrite. */
+const aiEditSchema = z.discriminatedUnion("mode", [
+  z.object({
+    mode: z.literal("patch"),
+    summary: z.string().min(1),
+    replacements: z.array(codeReplacementSchema).min(1).max(20),
+  }),
+  z.object({
+    mode: z.literal("full"),
+    summary: z.string().min(1),
+    code: z.string().min(1),
+  }),
+]);
+
+/** Full rewrite only (used for forceFull / patch fallback). */
+const aiEditFullSchema = z.object({
   summary: z.string().min(1),
   code: z.string().min(1),
 });
@@ -366,8 +391,9 @@ ${instruction}`;
 }
 
 /**
- * Edit an existing app's Web Component code. Does not rename or regenerate icons —
- * those are separate tools chosen by classifyEditIntent.
+ * Edit an existing app's Web Component code. The model chooses patch
+ * (search-replace) or full rewrite. Failed patches automatically fall back to full.
+ * Does not rename or regenerate icons — those are separate tools.
  */
 export async function editAppConfig(opts: {
   current: AppConfig;
@@ -375,32 +401,29 @@ export async function editAppConfig(opts: {
   instruction: string;
   language: Language;
   model?: string;
+  /** Skip patch mode; always request a full rewrite. */
+  forceFull?: boolean;
 }): Promise<{
   config: AppConfig;
   summary: string;
   costUsd: number | null;
   modelUsed: string | null;
+  /** Per-attempt usage for chat (patch and/or full). */
+  usageSteps: Array<{
+    tool: "patchCode" | "updateCode";
+    costUsd: number | null;
+    modelUsed: string | null;
+    durationMs: number;
+  }>;
 } | null> {
-  const { current, history, instruction, language, model } = opts;
+  const { current, history, instruction, language, model, forceFull = false } = opts;
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
-
-  const systemPrompt = `You are iterating on an existing Abblet app. The app is a single self-contained Web Component (custom element) written in vanilla JavaScript.
-
-You will receive the current full source code and a conversation of change requests. Apply the latest request and return the COMPLETE updated source code (never a diff, never partial code).
-
-Return one JSON object with:
-- summary: 1-2 sentences in ${langName} describing exactly what you changed (shown in the chat)
-- code: the complete, updated JavaScript that registers the custom element
-
-Do NOT change the home-screen title, description, or launcher icon — those are handled by other tools. Focus only on the app's code/features/UI.
-
-## Hard constraints
-- Keep the EXACT same custom element tagName: "${current.tagName}". The code must still call customElements.define("${current.tagName}", ...). Do NOT rename it.
-- Preserve existing user data compatibility: keep the same localStorage keys and data shape unless the request explicitly requires changing them.
-- Make the smallest change that fully satisfies the request; do not rewrite unrelated parts or regress existing features.
-- Vanilla JavaScript only. NO imports, NO external libraries, NO network requests. Everything inside the Shadow DOM.
-
-${designGuidelines(langName)}`;
+  const usageSteps: Array<{
+    tool: "patchCode" | "updateCode";
+    costUsd: number | null;
+    modelUsed: string | null;
+    durationMs: number;
+  }> = [];
 
   const recent = history.slice(-20);
   const historyText = recent.length
@@ -409,7 +432,16 @@ ${designGuidelines(langName)}`;
         .join("\n\n")
     : "(no previous messages)";
 
-  const userPrompt = `Current app title: ${current.title}
+  const sharedConstraints = `## Hard constraints
+- Keep the EXACT same custom element tagName: "${current.tagName}". The code must still call customElements.define("${current.tagName}", ...). Do NOT rename it.
+- Preserve existing user data compatibility: keep the same localStorage keys and data shape unless the request explicitly requires changing them.
+- Make the smallest change that fully satisfies the request; do not rewrite unrelated parts or regress existing features.
+- Vanilla JavaScript only. NO imports, NO external libraries, NO network requests. Everything inside the Shadow DOM.
+- Do NOT change the home-screen title, description, or launcher icon — those are handled by other tools.
+
+${designGuidelines(langName)}`;
+
+  const contextPrompt = `Current app title: ${current.title}
 Current app description: ${current.description}
 Custom element tagName: ${current.tagName}
 
@@ -422,34 +454,171 @@ Conversation so far:
 ${historyText}
 
 New change request:
-${instruction}
+${instruction}`;
 
-Return the complete updated code and a short summary of what you changed.`;
+  async function requestFullRewrite(reason: string): Promise<{
+    config: AppConfig;
+    summary: string;
+    costUsd: number | null;
+    modelUsed: string | null;
+  } | null> {
+    const started = Date.now();
+    const systemPrompt = `You are iterating on an existing Abblet app. The app is a single self-contained Web Component (custom element) written in vanilla JavaScript.
 
-  const { data: generated, costUsd, model: modelUsed } = await requestJsonFromAi({
+${reason}
+
+Return one JSON object with:
+- summary: 1-2 sentences in ${langName} describing exactly what you changed (shown in the chat)
+- code: the COMPLETE updated JavaScript that registers the custom element (never a diff, never partial code)
+
+${sharedConstraints}`;
+
+    const { data, costUsd, model: modelUsed } = await requestJsonFromAi({
+      systemPrompt,
+      userPrompt: `${contextPrompt}
+
+Return the complete updated code and a short summary of what you changed.`,
+      schema: aiEditFullSchema,
+      model,
+    });
+
+    usageSteps.push({
+      tool: "updateCode",
+      costUsd,
+      modelUsed,
+      durationMs: Date.now() - started,
+    });
+
+    if (!data) return null;
+    if (!data.code.includes(current.tagName)) return null;
+
+    return {
+      config: {
+        ...current,
+        status: "ready",
+        code: data.code,
+        title: clampAppTitle(current.title),
+        description: current.description,
+      },
+      summary: data.summary.trim(),
+      costUsd,
+      modelUsed,
+    };
+  }
+
+  if (forceFull) {
+    const full = await requestFullRewrite(
+      "Apply the latest request and return the COMPLETE updated source code.",
+    );
+    if (!full) return null;
+    return {
+      ...full,
+      costUsd: usageSteps.reduce((sum, s) => addCost(sum, s.costUsd), null as number | null),
+      modelUsed: full.modelUsed,
+      usageSteps,
+    };
+  }
+
+  const patchStarted = Date.now();
+  const systemPrompt = `You are iterating on an existing Abblet app. The app is a single self-contained Web Component (custom element) written in vanilla JavaScript.
+
+You will receive the current full source code and a conversation of change requests. Choose the smallest reliable edit mode:
+
+## mode: "patch" (preferred for small changes)
+Use search/replace when the change is local (color, copy, one handler, small CSS, typo, single feature tweak).
+Return:
+- mode: "patch"
+- summary: 1-2 sentences in ${langName}
+- replacements: array of { old, new, replaceAll? }
+  - old: exact substring copied from the current source (include enough context to be unique)
+  - new: replacement text (use "" to delete)
+  - replaceAll: optional; if true, replace every occurrence of old
+  - Without replaceAll, old MUST appear exactly once in the file
+  - Never use line numbers. Never invent text that is not in the source for old.
+
+## mode: "full" (required for large changes)
+Use when adding substantial features, restructuring, touching many places, or when patch would be fragile.
+Return:
+- mode: "full"
+- summary: 1-2 sentences in ${langName}
+- code: the COMPLETE updated JavaScript source
+
+${sharedConstraints}`;
+
+  const { data: generated, costUsd: firstCost, model: firstModel } = await requestJsonFromAi({
     systemPrompt,
-    userPrompt,
+    userPrompt: `${contextPrompt}
+
+Choose patch or full and return the JSON for that mode.`,
     schema: aiEditSchema,
     model,
   });
 
   if (!generated) return null;
 
-  // Varmistus: päivitetyssä koodissa on säilytettävä sama tagName.
-  if (!generated.code.includes(current.tagName)) return null;
+  if (generated.mode === "full") {
+    usageSteps.push({
+      tool: "updateCode",
+      costUsd: firstCost,
+      modelUsed: firstModel,
+      durationMs: Date.now() - patchStarted,
+    });
+    if (!generated.code.includes(current.tagName)) return null;
+    return {
+      config: {
+        ...current,
+        status: "ready",
+        code: generated.code,
+        title: clampAppTitle(current.title),
+        description: current.description,
+      },
+      summary: generated.summary.trim(),
+      costUsd: firstCost,
+      modelUsed: firstModel,
+      usageSteps,
+    };
+  }
 
-  const config: AppConfig = {
-    ...current,
-    status: "ready",
-    code: generated.code,
-    title: clampAppTitle(current.title),
-    description: current.description,
-  };
+  // mode === "patch"
+  usageSteps.push({
+    tool: "patchCode",
+    costUsd: firstCost,
+    modelUsed: firstModel,
+    durationMs: Date.now() - patchStarted,
+  });
+
+  const applied = applyReplacements(current.code, generated.replacements);
+  if (applied.ok && applied.code.includes(current.tagName)) {
+    return {
+      config: {
+        ...current,
+        status: "ready",
+        code: applied.code,
+        title: clampAppTitle(current.title),
+        description: current.description,
+      },
+      summary: generated.summary.trim(),
+      costUsd: firstCost,
+      modelUsed: firstModel,
+      usageSteps,
+    };
+  }
+
+  console.warn(
+    "App edit patch failed, falling back to full rewrite:",
+    applied.ok ? "tagName missing after patch" : applied.reason,
+  );
+
+  const full = await requestFullRewrite(
+    "A previous search/replace patch failed to apply cleanly. Ignore patches and return the COMPLETE updated source code that fully satisfies the latest request.",
+  );
+  if (!full) return null;
 
   return {
-    config,
-    summary: generated.summary.trim(),
-    costUsd,
-    modelUsed,
+    config: full.config,
+    summary: full.summary,
+    costUsd: usageSteps.reduce((sum, s) => addCost(sum, s.costUsd), null as number | null),
+    modelUsed: full.modelUsed,
+    usageSteps,
   };
 }

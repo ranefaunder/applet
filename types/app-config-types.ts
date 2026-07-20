@@ -46,7 +46,7 @@ export type AppEditRole = "user" | "assistant";
 /** One AI tool call within an assistant edit turn. */
 export type AppEditToolUsage = {
   /** Tool id shown in chat stats. */
-  tool: "intent" | "updateCode" | "rename" | "regenerateIcon" | "generate";
+  tool: "intent" | "updateCode" | "patchCode" | "rename" | "regenerateIcon" | "generate";
   modelKey?: string | null;
   costUsd?: number | null;
   durationMs?: number | null;

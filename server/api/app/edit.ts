@@ -171,7 +171,6 @@ export default {
         const { tools } = intent;
 
         if (tools.includes("updateCode")) {
-          const started = Date.now();
           let result;
           try {
             result = await editAppConfig({
@@ -196,12 +195,14 @@ export default {
           nextConfig = result.config;
           costUsd = addCost(costUsd, result.costUsd);
           modelUsed = result.modelUsed ?? modelUsed;
-          usage.push({
-            tool: "updateCode",
-            modelKey: result.modelUsed,
-            costUsd: result.costUsd,
-            durationMs: Date.now() - started,
-          });
+          for (const step of result.usageSteps) {
+            usage.push({
+              tool: step.tool,
+              modelKey: step.modelUsed,
+              costUsd: step.costUsd,
+              durationMs: step.durationMs,
+            });
+          }
           replyParts.push(result.summary);
         }
 

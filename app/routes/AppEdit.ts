@@ -41,6 +41,8 @@ function toolUsageLabel(tool: AppEditToolUsage["tool"]): string {
       return t("Intent");
     case "updateCode":
       return t("Code");
+    case "patchCode":
+      return t("Patch");
     case "rename":
       return t("Name");
     case "regenerateIcon":

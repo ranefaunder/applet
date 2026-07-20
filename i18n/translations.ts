@@ -210,6 +210,7 @@ export const translations = {
   "Icon": { fi: "Kuvake" },
   "Intent": { fi: "Intent" },
   "Code": { fi: "Koodi" },
+  "Patch": { fi: "Patch" },
   "Name": { fi: "Nimi" },
   "Build": { fi: "Luonti" },
   "Generate new icon": { fi: "Luo uusi kuvake" },
