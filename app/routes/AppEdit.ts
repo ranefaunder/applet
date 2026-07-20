@@ -34,6 +34,7 @@ import {
 } from "/app/stores/appEditStore";
 import {
   EDIT_AI_MODELS,
+  formatAiCostUsd,
   formatAiRequestStats,
   type EditAiModelKey,
 } from "/utils/ai-models";
@@ -115,6 +116,16 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
               <button
                 type="button"
                 ui-button="tertiary square sm"
+                ui-icon=${editMode.value === "chat" ? "code" : "message-circle"}
+                title=${editMode.value === "chat" ? t("Code") : t("Chat")}
+                aria-label=${editMode.value === "chat" ? t("Code") : t("Chat")}
+                onClick=${() => {
+                  editMode.value = editMode.value === "chat" ? "code" : "chat";
+                }}
+              ></button>
+              <button
+                type="button"
+                ui-button="tertiary square sm"
                 ui-icon="image"
                 title=${t("Generate new icon")}
                 aria-label=${t("Generate new icon")}
@@ -173,7 +184,6 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
 function EditWorkspace({ slug, creating }: { slug: string; creating: boolean }) {
   return html`
     <div class="workspace" ui-column>
-      ${creating ? "" : html`<${ModeTabs} />`}
       ${editError.value
         ? html`<div class="error-banner" role="alert" ui-margin="inline-md top-sm">${editError.value}</div>`
         : ""}
@@ -184,40 +194,15 @@ function EditWorkspace({ slug, creating }: { slug: string; creating: boolean }) 
   `;
 }
 
-function ModeTabs() {
-  const mode = editMode.value;
-  return html`
-    <div class="tabs-wrap" ui-row="x-center" ui-padding="top-sm inline-md">
-      <div ui-group role="tablist" aria-label=${t("Editor")}>
-        <button
-          type="button"
-          role="tab"
-          aria-selected=${mode === "chat"}
-          ui-button=${mode === "chat" ? "primary sm" : "sm"}
-          onClick=${() => (editMode.value = "chat")}
-        >
-          ${t("Chat")}
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected=${mode === "code"}
-          ui-button=${mode === "code" ? "primary sm" : "sm"}
-          onClick=${() => (editMode.value = "code")}
-        >
-          ${t("Code")}
-        </button>
-      </div>
-    </div>
-  `;
-}
-
 function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
   // useSignal (not useState) so store signal updates still re-render this panel.
   const draft = useSignal("");
   const elapsedSec = useSignal(0);
+  const inspectUsage = useSignal<AppEditToolUsage | null>(null);
+  const copied = useSignal(false);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const jsonDialogRef = useRef<HTMLDialogElement>(null);
   const app = editApp.value;
   const originalPrompt = app?.config.prompt?.trim() ?? "";
   const messages = editMessages.value;
@@ -241,6 +226,14 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
           ]
         : [];
 
+  const sessionCostUsd = displayMessages.reduce((sum, m) => {
+    if (m.role !== "assistant" || !m.usage) return sum;
+    for (const u of m.usage) {
+      if (typeof u.costUsd === "number") sum = (sum ?? 0) + u.costUsd;
+    }
+    return sum;
+  }, null as number | null);
+
   useEffect(() => {
     const el = listRef.current;
     if (el) el.scrollTop = el.scrollHeight;
@@ -263,6 +256,17 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
     }, 250);
     return () => window.clearInterval(id);
   }, [sending]);
+
+  useEffect(() => {
+    const dialog = jsonDialogRef.current;
+    if (!dialog) return;
+    if (inspectUsage.value) {
+      copied.value = false;
+      if (!dialog.open) dialog.showModal();
+    } else if (dialog.open) {
+      dialog.close();
+    }
+  }, [inspectUsage.value]);
 
   function formatElapsed(totalSec: number): string {
     const m = Math.floor(totalSec / 60);
@@ -295,6 +299,31 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
     });
   }
 
+  function openUsageJson(usage: AppEditToolUsage) {
+    inspectUsage.value = usage;
+  }
+
+  function closeUsageJson() {
+    inspectUsage.value = null;
+  }
+
+  async function copyUsageJson() {
+    const json = inspectUsage.value?.responseJson;
+    if (json === undefined || json === null) return;
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(json, null, 2));
+      copied.value = true;
+    } catch {
+      /* ignore */
+    }
+  }
+
+  const inspectLabel = inspectUsage.value ? toolUsageLabel(inspectUsage.value.tool) : "";
+  const inspectJsonText =
+    inspectUsage.value?.responseJson !== undefined && inspectUsage.value?.responseJson !== null
+      ? JSON.stringify(inspectUsage.value.responseJson, null, 2)
+      : null;
+
   return html`
     <div class="chat" ui-column>
       <div class="messages" ref=${listRef}>
@@ -321,11 +350,21 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
                               costUsd: u.costUsd,
                             });
                             return stats
-                              ? { label: toolUsageLabel(u.tool), stats }
+                              ? { usage: u, label: toolUsageLabel(u.tool), stats }
                               : null;
                           })
-                          .filter((line): line is { label: string; stats: string } => line != null)
+                          .filter(
+                            (line): line is { usage: AppEditToolUsage; label: string; stats: string } =>
+                              line != null,
+                          )
                       : [];
+                  const turnCost =
+                    m.role === "assistant" && m.usage && m.usage.length > 0
+                      ? m.usage.reduce((sum, u) => {
+                          if (typeof u.costUsd !== "number") return sum;
+                          return (sum ?? 0) + u.costUsd;
+                        }, null as number | null)
+                      : null;
                   return html`
                   <div
                     class=${`msg ${m.role === "user" ? "user" : "assistant"}`}
@@ -337,9 +376,19 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
                     <div class="bubble">${m.content}</div>
                     ${usageLines.map(
                       (line) => html`
-                        <p class="msg-stats">${line.label} · ${line.stats}</p>
+                        <button
+                          type="button"
+                          class="msg-stats"
+                          title=${t("AI response")}
+                          onClick=${() => openUsageJson(line.usage)}
+                        >
+                          ${line.label} · ${line.stats}
+                        </button>
                       `,
                     )}
+                    ${typeof turnCost === "number"
+                      ? html`<p class="msg-stats msg-stats-total">${t("Total")} · ${formatAiCostUsd(turnCost)}</p>`
+                      : ""}
                   </div>`;
                 },
               )}
@@ -400,6 +449,12 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
               draft.value = (e.target as HTMLTextAreaElement).value;
               resizeInput();
             }}
+            onKeyDown=${(e: KeyboardEvent) => {
+              if (e.key === "Enter" && e.shiftKey && !e.metaKey && !e.ctrlKey && !e.altKey) {
+                e.preventDefault();
+                if (canSend) (e.currentTarget as HTMLTextAreaElement).form?.requestSubmit();
+              }
+            }}
           ></textarea>
           <div ui-row="x-between y-center gap-sm">
             <label class="model-picker">
@@ -422,16 +477,61 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
                 )}
               </select>
             </label>
-            <button
-              type="submit"
-              ui-button="primary square sm"
-              ui-icon="arrow-up"
-              disabled=${!canSend}
-              aria-label=${creating ? t("Apply It") : t("Send")}
-            ></button>
+            <div ui-row="y-center gap-sm">
+              ${typeof sessionCostUsd === "number"
+                ? html`
+                  <span class="composer-cost" title=${t("Total AI cost")}>
+                    ${t("Total")} · ${formatAiCostUsd(sessionCostUsd)}
+                  </span>`
+                : ""}
+              <button
+                type="submit"
+                ui-button="primary square sm"
+                ui-icon="arrow-up"
+                disabled=${!canSend}
+                aria-label=${creating ? t("Apply It") : t("Send")}
+              ></button>
+            </div>
           </div>
         </div>
       </form>
+
+      <dialog
+        class="json-dialog"
+        ref=${jsonDialogRef}
+        ui-dialog="md"
+        closedby="any"
+        onClose=${() => {
+          inspectUsage.value = null;
+        }}
+      >
+        <div ui-column="gap-md">
+          <div ui-row="x-between y-center gap-sm">
+            <h2 ui-heading="sm">${t("AI response")}${inspectLabel ? ` · ${inspectLabel}` : ""}</h2>
+            <button
+              type="button"
+              ui-button="tertiary square sm"
+              ui-icon="x"
+              aria-label=${t("Close")}
+              onClick=${closeUsageJson}
+            ></button>
+          </div>
+          ${inspectJsonText
+            ? html`<pre class="json-pre">${inspectJsonText}</pre>`
+            : html`<p class="json-empty">${t("No response saved")}</p>`}
+          <div ui-row="x-end gap-sm">
+            ${inspectJsonText
+              ? html`
+                <button type="button" ui-button="sm" onClick=${() => void copyUsageJson()}>
+                  ${copied.value ? t("Copied") : t("Copy")}
+                </button>`
+              : ""}
+            <button type="button" ui-button="primary sm" onClick=${closeUsageJson}>
+              ${t("Close")}
+            </button>
+          </div>
+        </div>
+      </dialog>
     </div>
   `;
 }
@@ -582,10 +682,6 @@ function style() {
         background: var(--white);
       }
 
-      .tabs-wrap {
-        flex: none;
-      }
-
       .error-banner {
         flex: none;
         padding: 0.625rem 0.875rem;
@@ -667,10 +763,35 @@ function style() {
       .msg-stats {
         margin: 0.35rem 0 0;
         padding: 0 0.15rem;
+        border: 0;
+        background: transparent;
+        font: inherit;
         font-size: 0.6875rem;
         line-height: 1.3;
         color: var(--neutral-400);
         font-variant-numeric: tabular-nums;
+        cursor: pointer;
+        text-align: left;
+      }
+
+      .msg-stats:hover,
+      .msg-stats:focus-visible {
+        color: var(--neutral-700);
+        text-decoration: underline;
+        outline: none;
+      }
+
+      .msg-stats-total {
+        cursor: default;
+        font-weight: 600;
+        color: var(--neutral-500);
+        text-decoration: none;
+      }
+
+      .msg-stats-total:hover,
+      .msg-stats-total:focus-visible {
+        color: var(--neutral-500);
+        text-decoration: none;
       }
 
       .msg.assistant .msg-stats {
@@ -890,9 +1011,38 @@ function style() {
       }
 
       .composer-cost {
+        font-size: 0.6875rem;
+        color: var(--neutral-400);
         font-variant-numeric: tabular-nums;
         letter-spacing: 0.01em;
         opacity: 0.85;
+        white-space: nowrap;
+      }
+
+      .json-dialog {
+        max-width: min(40rem, calc(100vw - 2rem));
+        width: 100%;
+      }
+
+      .json-pre {
+        margin: 0;
+        max-height: min(50vh, 28rem);
+        overflow: auto;
+        padding: 0.75rem 0.875rem;
+        border-radius: 0.625rem;
+        background: #141414;
+        color: #e8e8e8;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+        font-size: 0.75rem;
+        line-height: 1.45;
+        white-space: pre;
+        tab-size: 2;
+      }
+
+      .json-empty {
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--neutral-500);
       }
 
       .sr-only {

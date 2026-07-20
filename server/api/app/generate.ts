@@ -132,6 +132,7 @@ export default {
             modelKey: generated.modelUsed,
             costUsd: generated.costUsd,
             durationMs,
+            responseJson: generated.responseJson ?? undefined,
           },
           ...(iconResult
             ? [

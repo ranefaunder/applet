@@ -232,7 +232,12 @@ export async function generateAppConfig(
   prompt: string,
   language: Language,
   model?: string,
-): Promise<{ config: AppConfig; costUsd: number | null; modelUsed: string | null } | null> {
+): Promise<{
+  config: AppConfig;
+  costUsd: number | null;
+  modelUsed: string | null;
+  responseJson: unknown | null;
+} | null> {
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
 
   const systemPrompt = `You build small personal apps for Abblet. Each app is a single, self-contained Web Component (custom element) written in vanilla JavaScript.
@@ -245,7 +250,7 @@ Return one JSON object with:
 
 ${designGuidelines(langName)}`;
 
-  const { data: generated, costUsd, model: modelUsed } = await requestJsonFromAi({
+  const { data: generated, costUsd, model: modelUsed, responseJson } = await requestJsonFromAi({
     systemPrompt,
     userPrompt: `Create an app for: ${prompt}`,
     schema: aiAppSchema,
@@ -267,6 +272,7 @@ ${designGuidelines(langName)}`;
     },
     costUsd,
     modelUsed,
+    responseJson,
   };
 }
 
@@ -287,6 +293,7 @@ export async function classifyEditIntent(opts: {
   progress: string[];
   costUsd: number | null;
   modelUsed: string | null;
+  responseJson: unknown | null;
 } | null> {
   const { current, history, instruction, language, model } = opts;
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
@@ -330,7 +337,7 @@ ${instruction}
 
 Choose tools, write reply, and progress status lines.`;
 
-  const { data, costUsd, model: modelUsed } = await requestJsonFromAi({
+  const { data, costUsd, model: modelUsed, responseJson } = await requestJsonFromAi({
     systemPrompt,
     userPrompt,
     schema: editIntentSchema,
@@ -353,6 +360,7 @@ Choose tools, write reply, and progress status lines.`;
     progress,
     costUsd,
     modelUsed,
+    responseJson,
   };
 }
 
@@ -368,6 +376,7 @@ export async function generateAppName(opts: {
   summary: string;
   costUsd: number | null;
   modelUsed: string | null;
+  responseJson: unknown | null;
 } | null> {
   const { current, instruction, language, model } = opts;
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
@@ -387,7 +396,7 @@ Current description: ${current.description}
 User request:
 ${instruction}`;
 
-  const { data, costUsd, model: modelUsed } = await requestJsonFromAi({
+  const { data, costUsd, model: modelUsed, responseJson } = await requestJsonFromAi({
     systemPrompt,
     userPrompt,
     schema: aiRenameSchema,
@@ -401,6 +410,7 @@ ${instruction}`;
     summary: data.summary.trim(),
     costUsd,
     modelUsed,
+    responseJson,
   };
 }
 
@@ -428,6 +438,7 @@ export async function editAppConfig(opts: {
     costUsd: number | null;
     modelUsed: string | null;
     durationMs: number;
+    responseJson: unknown | null;
   }>;
 } | null> {
   const { current, history, instruction, language, model, forceFull = false } = opts;
@@ -437,6 +448,7 @@ export async function editAppConfig(opts: {
     costUsd: number | null;
     modelUsed: string | null;
     durationMs: number;
+    responseJson: unknown | null;
   }> = [];
 
   const recent = history.slice(-20);
@@ -487,7 +499,7 @@ Return one JSON object with:
 
 ${sharedConstraints}`;
 
-    const { data, costUsd, model: modelUsed } = await requestJsonFromAi({
+    const { data, costUsd, model: modelUsed, responseJson } = await requestJsonFromAi({
       systemPrompt,
       userPrompt: `${contextPrompt}
 
@@ -501,6 +513,7 @@ Return the complete updated code and a short summary of what you changed.`,
       costUsd,
       modelUsed,
       durationMs: Date.now() - started,
+      responseJson,
     });
 
     if (!data) return null;
@@ -559,7 +572,8 @@ Return:
 
 ${sharedConstraints}`;
 
-  const { data: generated, costUsd: firstCost, model: firstModel } = await requestJsonFromAi({
+  const { data: generated, costUsd: firstCost, model: firstModel, responseJson: firstJson } =
+    await requestJsonFromAi({
     systemPrompt,
     userPrompt: `${contextPrompt}
 
@@ -576,6 +590,7 @@ Choose patch or full and return the JSON for that mode.`,
       costUsd: firstCost,
       modelUsed: firstModel,
       durationMs: Date.now() - patchStarted,
+      responseJson: firstJson,
     });
     if (!generated.code.includes(current.tagName)) return null;
     return {
@@ -599,6 +614,7 @@ Choose patch or full and return the JSON for that mode.`,
     costUsd: firstCost,
     modelUsed: firstModel,
     durationMs: Date.now() - patchStarted,
+    responseJson: firstJson,
   });
 
   const applied = applyReplacements(current.code, generated.replacements);

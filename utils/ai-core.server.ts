@@ -178,6 +178,8 @@ export type AiJsonResult<T> = {
   costUsd: number | null;
   /** OpenRouter model id that actually produced the reply. */
   model: string | null;
+  /** Parsed JSON object from the model (even when schema validation fails). */
+  responseJson: unknown | null;
 };
 
 function appendJsonSchemaToSystemPrompt(systemPrompt: string, schema: z.ZodType<unknown>): string {
@@ -231,12 +233,17 @@ export async function requestJsonFromAi<T = unknown>(
   const { content, costUsd, model: usedModel } = await fetchOpenRouterCompletion(messages, model);
 
   const jsonMatch = content.match(/\{[\s\S]*\}/);
-  if (!jsonMatch) return { data: null, costUsd, model: usedModel };
+  if (!jsonMatch) return { data: null, costUsd, model: usedModel, responseJson: null };
   const parsed = parseJson<unknown>(jsonrepair(jsonMatch[0]));
-  if (parsed == null) return { data: null, costUsd, model: usedModel };
+  if (parsed == null) return { data: null, costUsd, model: usedModel, responseJson: null };
   if (schema) {
     const result = schema.safeParse(parsed);
-    return { data: result.success ? result.data : null, costUsd, model: usedModel };
+    return {
+      data: result.success ? result.data : null,
+      costUsd,
+      model: usedModel,
+      responseJson: parsed,
+    };
   }
-  return { data: parsed as T, costUsd, model: usedModel };
+  return { data: parsed as T, costUsd, model: usedModel, responseJson: parsed };
 }

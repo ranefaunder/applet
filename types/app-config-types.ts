@@ -50,6 +50,8 @@ export type AppEditToolUsage = {
   modelKey?: string | null;
   costUsd?: number | null;
   durationMs?: number | null;
+  /** Parsed JSON the model returned for this tool call, if any. */
+  responseJson?: unknown;
 };
 
 export type AppEditMessage = {

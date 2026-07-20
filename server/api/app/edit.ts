@@ -247,6 +247,7 @@ async function runEditTurn(opts: {
       modelKey: generated.modelUsed,
       costUsd: generated.costUsd,
       durationMs: Date.now() - started,
+      responseJson: generated.responseJson ?? undefined,
     });
     assistantReply = t("I built \"$title\" for you. Open the app or tell me what to change.", {
       title: generated.config.title,
@@ -286,6 +287,7 @@ async function runEditTurn(opts: {
       modelKey: intent.modelUsed,
       costUsd: intent.costUsd,
       durationMs: Date.now() - intentStarted,
+      responseJson: intent.responseJson ?? undefined,
     });
     costUsd = intent.costUsd;
     modelUsed = intent.modelUsed;
@@ -332,6 +334,7 @@ async function runEditTurn(opts: {
           modelKey: step.modelUsed,
           costUsd: step.costUsd,
           durationMs: step.durationMs,
+          responseJson: step.responseJson ?? undefined,
         });
       }
       replyParts.push(result.summary);
@@ -372,6 +375,7 @@ async function runEditTurn(opts: {
         modelKey: renamed.modelUsed,
         costUsd: renamed.costUsd,
         durationMs: Date.now() - started,
+        responseJson: renamed.responseJson ?? undefined,
       });
       replyParts.push(renamed.summary);
     }
