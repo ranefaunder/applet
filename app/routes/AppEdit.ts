@@ -17,6 +17,9 @@ import {
   editMessages,
   editLoading,
   editSending,
+  editStatusText,
+  editStatusSteps,
+  editStatusIndex,
   editSavingCode,
   editError,
   editMode,
@@ -218,6 +221,9 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
   const originalPrompt = app?.config.prompt?.trim() ?? "";
   const messages = editMessages.value;
   const sending = editSending.value;
+  const statusText = editStatusText.value;
+  const statusSteps = editStatusSteps.value;
+  const statusIndex = editStatusIndex.value;
   const canSend = Boolean(draft.value.trim()) && !sending;
 
   const displayMessages: AppEditMessage[] =
@@ -319,11 +325,36 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
           ${sending
             ? html`
               <div class="msg assistant">
-                <div class="bubble typing" aria-live="polite" ui-row="y-center gap-sm">
-                  <span>
-                    ${creating ? t("AI is building your app.") : t("AI is updating your app…")}
-                  </span>
-                  <i ui-icon="spinner sm" aria-hidden="true"></i>
+                <div class="bubble status-bubble" aria-live="polite">
+                  <div class="status-bar" aria-hidden="true">
+                    <span class="status-bar-fill"></span>
+                  </div>
+                  <p class="status-headline" key=${statusText ?? "default"}>
+                    ${statusText
+                      ?? (creating ? t("AI is building your app.") : t("AI is updating your app…"))}
+                  </p>
+                  ${statusSteps.length > 0
+                    ? html`
+                      <ul class="status-steps">
+                        ${statusSteps.map(
+                          (step, i) => html`
+                            <li
+                              class=${i < statusIndex
+                                ? "done"
+                                : i === statusIndex
+                                  ? "active"
+                                  : "pending"}
+                            >
+                              <span class="status-dot" aria-hidden="true"></span>
+                              <span>${step}</span>
+                            </li>
+                          `,
+                        )}
+                      </ul>`
+                    : html`
+                      <div class="status-pulse" aria-hidden="true">
+                        <span></span><span></span><span></span>
+                      </div>`}
                 </div>
               </div>`
             : ""}
@@ -625,6 +656,133 @@ function style() {
         color: var(--neutral-800);
         border: 1px solid var(--neutral-200);
         border-bottom-left-radius: 0.3rem;
+      }
+
+      .status-bubble {
+        min-width: min(100%, 18rem);
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+
+      .status-bar {
+        height: 3px;
+        border-radius: 999px;
+        background: var(--neutral-100);
+        overflow: hidden;
+      }
+
+      .status-bar-fill {
+        display: block;
+        height: 100%;
+        width: 40%;
+        border-radius: inherit;
+        background: linear-gradient(
+          90deg,
+          color-mix(in oklab, var(--primary-400) 70%, white),
+          var(--primary-500, #3b82f6),
+          color-mix(in oklab, var(--primary-400) 70%, white)
+        );
+        animation: status-bar-slide 1.35s ease-in-out infinite;
+      }
+
+      @keyframes status-bar-slide {
+        0% { transform: translateX(-120%); }
+        100% { transform: translateX(320%); }
+      }
+
+      .status-headline {
+        margin: 0;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        line-height: 1.35;
+        color: var(--neutral-800);
+        animation: status-fade 0.35s ease;
+      }
+
+      @keyframes status-fade {
+        from { opacity: 0.35; transform: translateY(2px); }
+        to { opacity: 1; transform: none; }
+      }
+
+      .status-steps {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+      }
+
+      .status-steps li {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        font-size: 0.8125rem;
+        line-height: 1.35;
+        color: var(--neutral-400);
+        transition: color 0.25s ease, opacity 0.25s ease;
+      }
+
+      .status-steps li.done {
+        color: var(--neutral-500);
+        opacity: 0.85;
+      }
+
+      .status-steps li.active {
+        color: var(--neutral-800);
+        font-weight: 600;
+      }
+
+      .status-steps li.pending {
+        opacity: 0.55;
+      }
+
+      .status-dot {
+        width: 0.45rem;
+        height: 0.45rem;
+        margin-top: 0.35rem;
+        border-radius: 50%;
+        flex: none;
+        background: var(--neutral-300);
+      }
+
+      .status-steps li.done .status-dot {
+        background: var(--success, #34c759);
+      }
+
+      .status-steps li.active .status-dot {
+        background: var(--primary-500, #3b82f6);
+        box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary-500, #3b82f6) 45%, transparent);
+        animation: status-dot-pulse 1.1s ease-out infinite;
+      }
+
+      @keyframes status-dot-pulse {
+        0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--primary-500, #3b82f6) 40%, transparent); }
+        70% { box-shadow: 0 0 0 6px transparent; }
+        100% { box-shadow: 0 0 0 0 transparent; }
+      }
+
+      .status-pulse {
+        display: flex;
+        gap: 0.35rem;
+        padding-top: 0.1rem;
+      }
+
+      .status-pulse span {
+        width: 0.4rem;
+        height: 0.4rem;
+        border-radius: 50%;
+        background: var(--neutral-300);
+        animation: status-bounce 1s ease-in-out infinite;
+      }
+
+      .status-pulse span:nth-child(2) { animation-delay: 0.15s; }
+      .status-pulse span:nth-child(3) { animation-delay: 0.3s; }
+
+      @keyframes status-bounce {
+        0%, 80%, 100% { transform: translateY(0); opacity: 0.45; }
+        40% { transform: translateY(-3px); opacity: 1; }
       }
 
       .composer {

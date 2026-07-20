@@ -32,6 +32,11 @@ const editIntentSchema = z.object({
   tools: z.array(z.enum(EDIT_TOOLS)).max(3),
   /** Chat reply in the user's language. Used when tools is empty; otherwise a short preamble is fine. */
   reply: z.string().min(1),
+  /**
+   * Short present-tense status lines in the user's language for the loading UI
+   * while tools run (e.g. "Updating the list layout…"). 1–5 lines, concrete.
+   */
+  progress: z.array(z.string().min(1).max(120)).min(1).max(5),
 });
 
 const aiRenameSchema = z.object({
@@ -279,13 +284,14 @@ export async function classifyEditIntent(opts: {
 }): Promise<{
   tools: EditTool[];
   reply: string;
+  progress: string[];
   costUsd: number | null;
   modelUsed: string | null;
 } | null> {
   const { current, history, instruction, language, model } = opts;
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
 
-  const systemPrompt = `You route Abblet app-edit chat messages to tools. You do NOT edit code or icons yourself — you only choose tools and write a short chat reply.
+  const systemPrompt = `You route Abblet app-edit chat messages to tools. You do NOT edit code or icons yourself — you only choose tools, write a short chat reply, and status lines for the loading UI.
 
 Available tools:
 - updateCode: change the app's features, UI, behavior, bugfixes, layout, text inside the app, or anything that requires modifying the Web Component source.
@@ -299,8 +305,12 @@ Rules:
 - Multiple tools are OK when clearly requested together (e.g. rename + new icon).
 - If nothing actionable (question, greeting, unclear): tools = [] and reply asks a clarifying question or answers briefly.
 - reply: 1-3 short sentences in ${langName}. When tools is empty this is the full chat answer. When tools is non-empty, a brief acknowledgement is enough (the tools will add detail).
+- progress: 1–5 short present-tense status lines in ${langName} shown while work runs.
+    Make them specific to THIS request (not generic). Examples: "Updating the checklist colors…", "Renaming the app…", "Refreshing the home-screen icon…".
+    If tools is empty, still return one friendly line like "Thinking about your question…".
+    No markdown, no quotes around the lines, max ~80 characters each.
 
-Return JSON: { "tools": [...], "reply": "..." }`;
+Return JSON: { "tools": [...], "reply": "...", "progress": ["...", "..."] }`;
 
   const recent = history.slice(-12);
   const historyText = recent.length
@@ -318,7 +328,7 @@ ${historyText}
 Latest user message:
 ${instruction}
 
-Choose tools and write reply.`;
+Choose tools, write reply, and progress status lines.`;
 
   const { data, costUsd, model: modelUsed } = await requestJsonFromAi({
     systemPrompt,
@@ -334,9 +344,13 @@ Choose tools and write reply.`;
     if (!tools.includes(tool)) tools.push(tool);
   }
 
+  const progress = data.progress.map((p) => p.trim()).filter(Boolean).slice(0, 5);
+  if (progress.length === 0) progress.push(data.reply.trim().slice(0, 120) || "Working…");
+
   return {
     tools,
     reply: data.reply.trim(),
+    progress,
     costUsd,
     modelUsed,
   };

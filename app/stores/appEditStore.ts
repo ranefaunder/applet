@@ -17,6 +17,10 @@ export const editApp = signal<AppDetail | null>(null);
 export const editMessages = signal<AppEditMessage[]>([]);
 export const editLoading = signal(false);
 export const editSending = signal(false);
+/** Live status while an edit request is streaming (intent progress + tool steps). */
+export const editStatusText = signal<string | null>(null);
+export const editStatusSteps = signal<string[]>([]);
+export const editStatusIndex = signal(0);
 export const editSavingCode = signal(false);
 export const editError = signal<string | null>(null);
 export const editMode = signal<EditMode>("chat");
@@ -50,6 +54,9 @@ function resetEditRequestFlags(): void {
   editSending.value = false;
   editSavingCode.value = false;
   editRegeneratingIcon.value = false;
+  editStatusText.value = null;
+  editStatusSteps.value = [];
+  editStatusIndex.value = 0;
 }
 
 /** Seed from the SSR snapshot so a direct page load renders without a flash. */
@@ -114,6 +121,9 @@ export async function sendChatMessage(slug: string, text: string): Promise<boole
   const model = editAiModel.value;
   editError.value = null;
   editSending.value = true;
+  editStatusText.value = null;
+  editStatusSteps.value = [];
+  editStatusIndex.value = 0;
 
   // Optimistic: show the user's message immediately.
   const optimistic: AppEditMessage = {
@@ -125,25 +135,111 @@ export async function sendChatMessage(slug: string, text: string): Promise<boole
   editMessages.value = [...editMessages.value, optimistic];
 
   try {
-    const result = await apiFetch<{
-      app: AppDetail;
-      messages: AppEditMessage[];
-    }>(`/api/${lang()}/app/edit`, {
+    const res = await fetch(`/api/${lang()}/app/edit`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ slug, message: trimmed, model }),
     });
-    if (!result.success) {
-      editError.value = result.error.message ?? result.error.code;
-      // Drop the optimistic message on failure.
+
+    const contentType = res.headers.get("Content-Type") ?? "";
+    if (!contentType.includes("ndjson")) {
+      // Validation / auth errors still return normal JSON ApiResult.
+      let json: unknown;
+      try {
+        json = await res.json();
+      } catch {
+        editError.value = "Server returned invalid JSON";
+        editMessages.value = editMessages.value.filter((m) => m.id !== optimistic.id);
+        return true;
+      }
+      const body = json as {
+        success?: boolean;
+        error?: { message?: string; code?: string };
+        data?: { app: AppDetail; messages: AppEditMessage[] };
+      };
+      if (!body.success) {
+        editError.value = body.error?.message ?? body.error?.code ?? "Request failed";
+        editMessages.value = editMessages.value.filter((m) => m.id !== optimistic.id);
+        return true;
+      }
+      if (body.data) {
+        editApp.value = body.data.app;
+        codeDraft.value = body.data.app.config.code;
+        editMessages.value = body.data.messages;
+      }
+      return true;
+    }
+
+    if (!res.body) {
+      editError.value = "Empty response";
       editMessages.value = editMessages.value.filter((m) => m.id !== optimistic.id);
       return true;
     }
-    editApp.value = result.data.app;
-    codeDraft.value = result.data.app.config.code;
-    editMessages.value = result.data.messages;
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let gotDone = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() ?? "";
+      for (const line of lines) {
+        const trimmedLine = line.trim();
+        if (!trimmedLine) continue;
+        let event: {
+          type?: string;
+          text?: string;
+          steps?: string[];
+          index?: number;
+          data?: { app: AppDetail; messages: AppEditMessage[] };
+          error?: { message?: string; code?: string };
+        };
+        try {
+          event = JSON.parse(trimmedLine) as typeof event;
+        } catch {
+          continue;
+        }
+        if (event.type === "progress") {
+          if (Array.isArray(event.steps) && event.steps.length > 0) {
+            editStatusSteps.value = event.steps;
+          }
+          if (typeof event.index === "number") {
+            editStatusIndex.value = event.index;
+          }
+          if (typeof event.text === "string" && event.text.trim()) {
+            editStatusText.value = event.text.trim();
+          }
+        } else if (event.type === "done" && event.data) {
+          gotDone = true;
+          editApp.value = event.data.app;
+          codeDraft.value = event.data.app.config.code;
+          editMessages.value = event.data.messages;
+        } else if (event.type === "error") {
+          editError.value = event.error?.message ?? event.error?.code ?? "Request failed";
+          editMessages.value = editMessages.value.filter((m) => m.id !== optimistic.id);
+          return true;
+        }
+      }
+    }
+
+    if (!gotDone) {
+      editError.value = "Incomplete response";
+      editMessages.value = editMessages.value.filter((m) => m.id !== optimistic.id);
+    }
+    return true;
+  } catch {
+    editError.value = "Network request failed";
+    editMessages.value = editMessages.value.filter((m) => m.id !== optimistic.id);
     return true;
   } finally {
     editSending.value = false;
+    editStatusText.value = null;
+    editStatusSteps.value = [];
+    editStatusIndex.value = 0;
   }
 }
 
