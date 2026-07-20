@@ -215,6 +215,7 @@ function ModeTabs() {
 function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
   // useSignal (not useState) so store signal updates still re-render this panel.
   const draft = useSignal("");
+  const elapsedSec = useSignal(0);
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const app = editApp.value;
@@ -243,11 +244,31 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
   useEffect(() => {
     const el = listRef.current;
     if (el) el.scrollTop = el.scrollHeight;
-  }, [displayMessages.length, sending]);
+  }, [displayMessages.length, sending, statusText, statusIndex]);
 
   useEffect(() => {
     if (!sending) inputRef.current?.focus();
   }, [sending]);
+
+  // Running elapsed clock while the edit stream is in flight.
+  useEffect(() => {
+    if (!sending) {
+      elapsedSec.value = 0;
+      return;
+    }
+    const startedAt = Date.now();
+    elapsedSec.value = 0;
+    const id = window.setInterval(() => {
+      elapsedSec.value = Math.floor((Date.now() - startedAt) / 1000);
+    }, 250);
+    return () => window.clearInterval(id);
+  }, [sending]);
+
+  function formatElapsed(totalSec: number): string {
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${m}:${s.toString().padStart(2, "0")}`;
+  }
 
   function resizeInput() {
     const el = inputRef.current;
@@ -329,10 +350,15 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
                   <div class="status-bar" aria-hidden="true">
                     <span class="status-bar-fill"></span>
                   </div>
-                  <p class="status-headline" key=${statusText ?? "default"}>
-                    ${statusText
-                      ?? (creating ? t("AI is building your app.") : t("AI is updating your app…"))}
-                  </p>
+                  <div class="status-headline-row">
+                    <p class="status-headline" key=${statusText ?? "default"}>
+                      ${statusText
+                        ?? (creating ? t("AI is building your app.") : t("AI is updating your app…"))}
+                    </p>
+                    <span class="status-elapsed" aria-label=${t("Elapsed time")}>
+                      ${formatElapsed(elapsedSec.value)}
+                    </span>
+                  </div>
                   ${statusSteps.length > 0
                     ? html`
                       <ul class="status-steps">
@@ -698,6 +724,24 @@ function style() {
         line-height: 1.35;
         color: var(--neutral-800);
         animation: status-fade 0.35s ease;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+
+      .status-headline-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.75rem;
+      }
+
+      .status-elapsed {
+        flex: none;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        letter-spacing: 0.02em;
+        color: var(--neutral-400);
       }
 
       @keyframes status-fade {

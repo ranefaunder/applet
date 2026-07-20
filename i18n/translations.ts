@@ -205,6 +205,7 @@ export const translations = {
   "Working on your app…": { fi: "Työstetään appiasi…" },
   "Building your app…": { fi: "Rakennetaan appiasi…" },
   "Designing the home-screen icon…": { fi: "Suunnitellaan kotinäytön kuvaketta…" },
+  "Elapsed time": { fi: "Kulunut aika" },
   "e.g. add a dark mode toggle": { fi: "esim. lisää tumman tilan kytkin" },
   "Sending…": { fi: "Lähetetään…" },
   "Send": { fi: "Lähetä" },
