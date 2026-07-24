@@ -169,7 +169,7 @@ export default function Edit(_props: EditRouteProps) {
         <div class="topbar-actions" ui-row="y-center gap-xs">
           ${app && !creating && slug
             ? html`
-              <a class="open-btn" ui-button="sm" href=${appPageUrl(lang, slug)} target="_blank" rel="noopener">
+              <a class="open-btn" ui-button="sm" href=${appPageUrl(lang, slug)}>
                 ${t("Open")}
               </a>`
             : app && slug

@@ -352,6 +352,18 @@ export default function AppLauncher() {
         box-sizing: border-box;
       }
 
+      @media (min-width: 640px) {
+        .shortcuts {
+          flex-direction: row;
+          align-items: stretch;
+        }
+
+        .shortcut {
+          flex: 1;
+          min-width: 0;
+        }
+      }
+
       .shortcut {
         display: flex;
         align-items: center;
