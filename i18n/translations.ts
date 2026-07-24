@@ -42,8 +42,8 @@ export const translations = {
   "Create New App": {
     fi: "Luo uusi app",
   },
-  "Describe your idea and build it with AI": {
-    fi: "Kuvaile ideasi ja rakenna se tekoälyllä",
+  "Build it with AI": {
+    fi: "Rakenna tekoälyllä",
   },
   "Draft": {
     fi: "Luonnos",

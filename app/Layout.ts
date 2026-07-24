@@ -6,6 +6,7 @@ import { getLang } from "/utils/lang";
 import Header from "./components/header/Header";
 import Footer from "./components/footer/Footer";
 import Dialogs from "/app/components/Dialogs";
+import CreateOverlay from "/app/components/home/CreateOverlay";
 
 type LayoutProps = {
   children: ComponentChildren;
@@ -36,6 +37,7 @@ export default function Layout({ children }: LayoutProps) {
         ${children}
       </main>
       ${hideFooter ? "" : html`<${Footer} />`}
+      <${CreateOverlay} />
       <${Dialogs} />
     </div>
   `;

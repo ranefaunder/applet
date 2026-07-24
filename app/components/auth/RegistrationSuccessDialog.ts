@@ -3,6 +3,7 @@ import { useRef, useEffect } from "preact/hooks";
 import { useLocation } from "preact-iso";
 import { getLang } from "/utils/lang";
 import { t } from "/utils/i18n";
+import { openCreateOverlay } from "/app/stores/createOverlayStore";
 
 export default function RegistrationSuccessDialog() {
   const { route, path } = useLocation();
@@ -29,7 +30,8 @@ export default function RegistrationSuccessDialog() {
           ui-button="primary block"
           onClick=${() => {
             dialogRef.current?.close();
-            route(`/${lang}/create`, true);
+            openCreateOverlay();
+            route(`/${lang}/`, true);
           }}
         >
           ${t("Create App")}

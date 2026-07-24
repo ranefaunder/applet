@@ -8,6 +8,7 @@ import { getLang } from "/utils/lang";
 import { apps, loadApps, clearApps } from "/app/stores/appStore";
 import { isLoggedIn, user } from "/app/stores/userStore";
 import AppIcon from "/app/components/home/AppIcon";
+import { openCreateOverlay } from "/app/stores/createOverlayStore";
 
 const compassSvg = html`
   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -158,11 +159,18 @@ export default function AppLauncher() {
         </span>
         <span class="shortcut-chevron">${chevronSvg}</span>
       </a>
-      <a class="shortcut create" href=${`/${lang}/create`}>
+      <a
+        class="shortcut create"
+        href=${`/${lang}/create`}
+        onClick=${(e: MouseEvent) => {
+          e.preventDefault();
+          openCreateOverlay();
+        }}
+      >
         <span class="shortcut-badge">${plusSvg}</span>
         <span class="shortcut-text">
           <span class="shortcut-title">${t("Create New App")}</span>
-          <span class="shortcut-desc">${t("Describe your idea and build it with AI")}</span>
+          <span class="shortcut-desc">${t("Build it with AI")}</span>
         </span>
         <span class="shortcut-chevron">${chevronSvg}</span>
       </a>

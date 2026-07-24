@@ -4,6 +4,7 @@ import { AVAILABLE_LANGUAGES } from "/i18n/languages";
 import { getLang } from "/utils/lang";
 import { t } from "/utils/i18n";
 import { isLoggedIn } from "/app/stores/userStore";
+import { openCreateOverlay } from "/app/stores/createOverlayStore";
 
 function isHomePath(path: string, lang: string): boolean {
   const normalized = path.replace(/\/+$/, "") || "/";
@@ -48,7 +49,14 @@ export default function Header() {
       </a>
       <nav class="navigation" ui-row="gap-lg y-center">
         <a href="/${lang}/" ui-button="inline">${t("Apps")}</a>
-        <a href="/${lang}/create" ui-button="inline">${t("Create")}</a>
+        <a
+          href="/${lang}/create"
+          ui-button="inline"
+          onClick=${(e: MouseEvent) => {
+            e.preventDefault();
+            openCreateOverlay();
+          }}
+        >${t("Create")}</a>
         <a href="/${lang}/settings" ui-button="inline">${t("Settings")}</a>
       </nav>
       <div class="user-actions" ui-row="gap-sm y-center">
