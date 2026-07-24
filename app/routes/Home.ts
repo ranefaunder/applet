@@ -26,14 +26,55 @@ export default function Home(_props: RoutePropsForPath<typeof HomePath>) {
           system-ui, sans-serif;
 
         position: relative;
+        isolation: isolate;
         flex: 1;
         min-height: 0;
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        background-color: transparent;
+        background-color: #1a1848;
         font-family: var(--home-font);
         color: #fff;
+      }
+
+      /* CSS-tausta (ei kuvaa): sininen → violetti → pinkki/oranssi + pehmeä valo. */
+      &.home-screen::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        background-color: #1a1848;
+        background-image:
+          radial-gradient(
+            ellipse 95% 70% at 78% 92%,
+            rgba(255, 150, 120, 0.72) 0%,
+            rgba(220, 90, 140, 0.35) 35%,
+            transparent 62%
+          ),
+          radial-gradient(
+            ellipse 70% 55% at 12% 18%,
+            rgba(70, 110, 255, 0.65) 0%,
+            transparent 58%
+          ),
+          radial-gradient(
+            ellipse 65% 50% at 88% 22%,
+            rgba(160, 70, 230, 0.5) 0%,
+            transparent 55%
+          ),
+          radial-gradient(
+            ellipse 85% 45% at 45% 58%,
+            rgba(255, 200, 210, 0.28) 0%,
+            transparent 55%
+          ),
+          linear-gradient(
+            155deg,
+            #15205c 0%,
+            #2a1f6e 32%,
+            #5a2a7a 58%,
+            #c45a78 82%,
+            #e8896a 100%
+          );
       }
 
       .home-content {

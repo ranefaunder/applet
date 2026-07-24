@@ -60,7 +60,7 @@ function resetEditRequestFlags(): void {
 }
 
 /** Seed from the SSR snapshot so a direct page load renders without a flash. */
-export function initAppEditStore(): void {
+export function initEditStore(): void {
   resetEditRequestFlags();
   restoreEditAiModelFromStorage();
   const { initialApp } = ssrContext();
@@ -109,6 +109,71 @@ export async function loadEdit(slug: string): Promise<void> {
     }
   } finally {
     editLoading.value = false;
+  }
+}
+
+/** Clear editor state for a fresh /{lang}/edit (new app) session. */
+export function startNewEdit(): void {
+  editError.value = null;
+  resetEditRequestFlags();
+  editLoading.value = false;
+  editApp.value = null;
+  codeDraft.value = "";
+  editMessages.value = [];
+  editMode.value = "chat";
+}
+
+/**
+ * First-prompt create. On success fills the edit store and returns the new slug.
+ * @returns slug, or null if blocked / failed (error in editError or thread).
+ */
+export async function createAppFromPrompt(text: string): Promise<string | null> {
+  const trimmed = text.trim();
+  if (!trimmed) return null;
+  if (editSending.value) return null;
+
+  const model = editAiModel.value;
+  editError.value = null;
+  editSending.value = true;
+  editStatusText.value = null;
+  editStatusSteps.value = [];
+  editStatusIndex.value = 0;
+
+  const optimistic: AppEditMessage = {
+    id: `local-${Date.now()}`,
+    role: "user",
+    content: trimmed,
+    createdAt: new Date().toISOString(),
+  };
+  editMessages.value = [...editMessages.value, optimistic];
+
+  try {
+    const result = await apiFetch<{ app: AppDetail; messages: AppEditMessage[] }>(
+      `/api/${lang()}/app/generate`,
+      {
+        method: "POST",
+        body: JSON.stringify({ message: trimmed, model }),
+      },
+    );
+    if (!result.success) {
+      editError.value = result.error.message ?? result.error.code;
+      editMessages.value = editMessages.value.filter((m) => m.id !== optimistic.id);
+      return null;
+    }
+    editApp.value = result.data.app;
+    editMessages.value = result.data.messages;
+    codeDraft.value = result.data.app.config.code;
+    return result.data.app.slug;
+  } catch (err) {
+    console.error("Create app request failed:", err);
+    editError.value = "Network request failed. Try again.";
+    editMessages.value = editMessages.value.filter((m) => m.id !== optimistic.id);
+    return null;
+  } finally {
+    editSending.value = false;
+    editStatusText.value = null;
+    editStatusSteps.value = [];
+    editStatusIndex.value = 0;
   }
 }
 

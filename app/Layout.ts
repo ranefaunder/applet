@@ -6,7 +6,6 @@ import { getLang } from "/utils/lang";
 import Header from "./components/header/Header";
 import Footer from "./components/footer/Footer";
 import Dialogs from "/app/components/Dialogs";
-import CreateOverlay from "/app/components/home/CreateOverlay";
 
 type LayoutProps = {
   children: ComponentChildren;
@@ -18,7 +17,7 @@ function isLauncherPath(path: string, lang: string): boolean {
 }
 
 function isAppEditPath(path: string): boolean {
-  return /\/app\/[^/]+\/edit\/?$/.test(path);
+  return /\/edit(?:\/[^/]+)?\/?$/.test(path);
 }
 
 export default function Layout({ children }: LayoutProps) {
@@ -37,7 +36,6 @@ export default function Layout({ children }: LayoutProps) {
         ${children}
       </main>
       ${hideFooter ? "" : html`<${Footer} />`}
-      <${CreateOverlay} />
       <${Dialogs} />
     </div>
   `;
@@ -57,7 +55,7 @@ export default function Layout({ children }: LayoutProps) {
         overflow: hidden;
       }
 
-      /* Etusivu on läpinäkyvä, jotta bodyn taustakuva näkyy läpi. */
+      /* Etusivu on läpinäkyvä — tausta tulee Home-reitin CSS:stä. */
       &.home {
         background-color: transparent;
       }

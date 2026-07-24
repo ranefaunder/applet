@@ -8,10 +8,11 @@ import type { AppEditMessage, AppEditToolUsage } from "/types/app-config-types";
 import { isDraftConfig } from "/types/app-config-types";
 import { t } from "/utils/i18n";
 import { highlightJavaScript } from "/utils/highlight-js";
-import { appPageUrl } from "/utils/app-url";
+import { appEditUrl, appPageUrl } from "/utils/app-url";
 import { appIconSrc } from "/utils/app-icon";
 import { draftLetter, previewGradient } from "/utils/app-preview";
 import { deleteApp } from "/app/stores/appStore";
+import { user } from "/app/stores/userStore";
 import {
   editApp,
   editMessages,
@@ -28,10 +29,12 @@ import {
   editRegeneratingIcon,
   codeDraft,
   loadEdit,
+  startNewEdit,
+  createAppFromPrompt,
   sendChatMessage,
   saveCode,
   regenerateIcon,
-} from "/app/stores/appEditStore";
+} from "/app/stores/editStore";
 import {
   EDIT_AI_MODELS,
   formatAiCostUsd,
@@ -56,27 +59,61 @@ function toolUsageLabel(tool: AppEditToolUsage["tool"]): string {
   }
 }
 
-export const AppEditPath = "/:lang/app/:slug/edit" as const;
+const WELCOME_KEY =
+  "Hey — I'm Abblet.\n\nTell me what kind of little app would help you. Just write it like you'd say it out loud — a couple of words is enough.\n\nFor example: shopping list, habit tracker, workout log, recipe book, budget, or mood journal.\n\nI do best with small, personal tools. What do you need?";
 
-export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
+/** New app: /:lang/edit — existing: /:lang/edit/:slug */
+export const EditPath = "/:lang/edit" as const;
+export const EditSlugPath = "/:lang/edit/:slug" as const;
+
+type EditRouteProps =
+  | RoutePropsForPath<typeof EditPath>
+  | RoutePropsForPath<typeof EditSlugPath>;
+
+export default function Edit(_props: EditRouteProps) {
   const { params } = useRoute();
   const { route } = useLocation();
   const lang = params.lang ?? "en";
-  const slug = params.slug ?? "";
+  const slug = ("slug" in params ? params.slug : undefined) ?? "";
+  const isNew = !slug;
+  const loggedIn = !!user.value;
   const deleting = useSignal(false);
+  const entered = useSignal(false);
 
   useEffect(() => {
-    if (slug) void loadEdit(slug);
+    if (isNew) {
+      startNewEdit();
+      return;
+    }
+    void loadEdit(slug);
+  }, [slug, isNew]);
+
+  useEffect(() => {
+    // Skip slide-in when store already has this app (e.g. /edit → /edit/:slug after generate).
+    if (slug && editApp.value?.slug === slug) {
+      entered.value = true;
+      return;
+    }
+    let raf2 = 0;
+    const raf1 = requestAnimationFrame(() => {
+      raf2 = requestAnimationFrame(() => {
+        entered.value = true;
+      });
+    });
+    return () => {
+      cancelAnimationFrame(raf1);
+      cancelAnimationFrame(raf2);
+    };
   }, [slug]);
 
   const app = editApp.value;
   const loading = editLoading.value;
-  const creating = app != null && isDraftConfig(app.config);
+  const creating = isNew || (app != null && isDraftConfig(app.config));
   const regeneratingIcon = editRegeneratingIcon.value;
   const iconSrc = appIconSrc(app?.iconId);
 
   async function handleDelete() {
-    if (!app || deleting.value) return;
+    if (!app || !slug || deleting.value) return;
     const ok = window.confirm(t("Delete \"$title\"? This cannot be undone.", { title: app.title }));
     if (!ok) return;
     deleting.value = true;
@@ -86,7 +123,7 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
   }
 
   const view = html`
-    <div data-scope="AppEdit" ui-column>
+    <div data-scope="Edit" class=${entered.value ? "in" : ""} ui-column>
       <header class="topbar" ui-row="x-between y-center gap-md" ui-padding="inline-md block-sm">
         <div class="topbar-title" ui-row="y-center gap-sm">
           <a
@@ -95,23 +132,27 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
             ui-icon="arrow-left"
             aria-label=${t("Back")}
           ></a>
-          ${app
+          ${isNew
             ? html`
-              ${iconSrc
-                ? html`<img class="app-chip-icon" src=${iconSrc} alt="" width="28" height="28" />`
-                : html`
-                  <span
-                    class="app-chip-fallback"
-                    style=${`background: ${previewGradient(slug)}`}
-                    aria-hidden="true"
-                  >${draftLetter(app.title)}</span>`}
-              <span class="app-chip-title">${app.title}</span>
-              ${creating ? html`<span class="badge">${t("Building")}</span>` : ""}`
-            : html`<span class="app-chip-title muted">${t("Editor")}</span>`}
+              <span class="app-chip-title">${t("New App")}</span>
+              <span class="badge">${t("Building")}</span>`
+            : app
+              ? html`
+                ${iconSrc
+                  ? html`<img class="app-chip-icon" src=${iconSrc} alt="" width="28" height="28" />`
+                  : html`
+                    <span
+                      class="app-chip-fallback"
+                      style=${`background: ${previewGradient(slug)}`}
+                      aria-hidden="true"
+                    >${draftLetter(app.title)}</span>`}
+                <span class="app-chip-title">${app.title}</span>
+                ${creating ? html`<span class="badge">${t("Building")}</span>` : ""}`
+              : html`<span class="app-chip-title muted">${t("Editor")}</span>`}
         </div>
 
         <div ui-row="y-center gap-xs">
-          ${app?.canEdit && !creating
+          ${app?.canEdit && !creating && slug
             ? html`
               <button
                 type="button"
@@ -134,7 +175,7 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
                 onClick=${() => void regenerateIcon(slug)}
               ></button>`
             : ""}
-          ${app?.canEdit
+          ${app?.canEdit && slug
             ? html`
               <button
                 type="button"
@@ -146,55 +187,87 @@ export default function AppEdit(_props: RoutePropsForPath<typeof AppEditPath>) {
                 onClick=${() => void handleDelete()}
               ></button>`
             : ""}
-          ${app && !creating
+          ${app && !creating && slug
             ? html`
               <a ui-button="sm" href=${appPageUrl(lang, slug)} target="_blank" rel="noopener">
                 ${t("Open app")}
               </a>`
-            : app
+            : app && slug
               ? html`<button type="button" ui-button="sm" disabled>${t("Open app")}</button>`
               : ""}
         </div>
       </header>
 
-      ${loading && !app
+      ${isNew && !loggedIn
         ? html`
           <div class="state" ui-column="gap-md x-center y-center" ui-padding="xl">
-            <i ui-icon="spinner lg"></i>
-            <p>${t("Loading…")}</p>
+            <p ui-heading="sm">${t("Sign in to apply your ideas")}</p>
+            <button
+              type="button"
+              ui-button="primary"
+              onClick=${() => (document.getElementById("login-dialog") as HTMLDialogElement | null)?.showModal()}
+            >
+              ${t("Login")}
+            </button>
+            <a href=${`/${lang}/`} ui-button="inline sm">${t("My Apps")}</a>
           </div>`
-        : !app
-          ? html`
-            <div class="state" ui-column="gap-md x-center y-center" ui-padding="xl">
-              <p>${editError.value ?? t("App not found")}</p>
-            </div>`
-          : !app.canEdit
+        : isNew
+          ? html`<${EditWorkspace} slug="" creating=${true} lang=${lang} />`
+          : loading && !app
             ? html`
               <div class="state" ui-column="gap-md x-center y-center" ui-padding="xl">
-                <p ui-heading="sm">${t("You can only edit your own apps.")}</p>
-                <a href=${appPageUrl(lang, slug)} ui-button="primary">${t("Open app")}</a>
+                <i ui-icon="spinner lg"></i>
+                <p>${t("Loading…")}</p>
               </div>`
-            : html`<${EditWorkspace} slug=${slug} creating=${creating} />`}
+            : !app
+              ? html`
+                <div class="state" ui-column="gap-md x-center y-center" ui-padding="xl">
+                  <p>${editError.value ?? t("App not found")}</p>
+                </div>`
+              : !app.canEdit
+                ? html`
+                  <div class="state" ui-column="gap-md x-center y-center" ui-padding="xl">
+                    <p ui-heading="sm">${t("You can only edit your own apps.")}</p>
+                    <a href=${appPageUrl(lang, slug)} ui-button="primary">${t("Open app")}</a>
+                  </div>`
+                : html`<${EditWorkspace} slug=${slug} creating=${creating} lang=${lang} />`}
     </div>
   `;
 
   return [view, style()];
 }
 
-function EditWorkspace({ slug, creating }: { slug: string; creating: boolean }) {
+function EditWorkspace({
+  slug,
+  creating,
+  lang,
+}: {
+  slug: string;
+  creating: boolean;
+  lang: string;
+}) {
   return html`
     <div class="workspace" ui-column>
       ${editError.value
         ? html`<div class="error-banner" role="alert" ui-margin="inline-md top-sm">${editError.value}</div>`
         : ""}
       ${creating || editMode.value === "chat"
-        ? html`<${ChatPanel} slug=${slug} creating=${creating} />`
+        ? html`<${ChatPanel} slug=${slug} creating=${creating} lang=${lang} />`
         : html`<${CodePanel} slug=${slug} />`}
     </div>
   `;
 }
 
-function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
+function ChatPanel({
+  slug,
+  creating,
+  lang,
+}: {
+  slug: string;
+  creating: boolean;
+  lang: string;
+}) {
+  const { route } = useLocation();
   // useSignal (not useState) so store signal updates still re-render this panel.
   const draft = useSignal("");
   const elapsedSec = useSignal(0);
@@ -204,6 +277,7 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const jsonDialogRef = useRef<HTMLDialogElement>(null);
   const app = editApp.value;
+  const isNew = !slug;
   const originalPrompt = app?.config.prompt?.trim() ?? "";
   const messages = editMessages.value;
   const sending = editSending.value;
@@ -212,19 +286,28 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
   const statusIndex = editStatusIndex.value;
   const canSend = Boolean(draft.value.trim()) && !sending;
 
+  const welcome: AppEditMessage = {
+    id: "welcome",
+    role: "assistant",
+    content: t(WELCOME_KEY),
+    createdAt: "",
+  };
+
   const displayMessages: AppEditMessage[] =
-    messages.length > 0
-      ? messages
-      : originalPrompt
-        ? [
-            {
-              id: "original-prompt",
-              role: "user",
-              content: originalPrompt,
-              createdAt: "",
-            },
-          ]
-        : [];
+    isNew && messages.length === 0
+      ? [welcome]
+      : messages.length > 0
+        ? messages
+        : originalPrompt
+          ? [
+              {
+                id: "original-prompt",
+                role: "user",
+                content: originalPrompt,
+                createdAt: "",
+              },
+            ]
+          : [];
 
   const sessionCostUsd = displayMessages.reduce((sum, m) => {
     if (m.role !== "assistant" || !m.usage) return sum;
@@ -291,6 +374,19 @@ function ChatPanel({ slug, creating }: { slug: string; creating: boolean }) {
       inputRef.current.value = "";
       inputRef.current.style.height = "auto";
     }
+
+    if (isNew) {
+      void createAppFromPrompt(text).then((newSlug) => {
+        if (!newSlug) {
+          draft.value = text;
+          if (inputRef.current) inputRef.current.value = text;
+          return;
+        }
+        route(appEditUrl(lang, newSlug), true);
+      });
+      return;
+    }
+
     void sendChatMessage(slug, text).then((started) => {
       if (!started && text) {
         draft.value = text;
@@ -603,12 +699,26 @@ function CodePanel({ slug }: { slug: string }) {
 
 function style() {
   return css`
-    @scope ([data-scope="AppEdit"]) to ([data-scope]) {
+    @scope ([data-scope="Edit"]) to ([data-scope]) {
       & {
         flex: 1;
         min-height: 0;
         background: var(--neutral-50);
         color: var(--neutral-900);
+        transform: translate3d(100%, 0, 0);
+        transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: transform;
+      }
+
+      &.in {
+        transform: translate3d(0, 0, 0);
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        & {
+          transform: none;
+          transition: none;
+        }
       }
 
       .topbar {

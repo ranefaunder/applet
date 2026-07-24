@@ -14,29 +14,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/*
- * Etusivun taustakuva suoraan bodylle. Kiinteä (fixed) full-bleed -kerros
- * body::before-elementissä on iOS Safarilla luotettavin tapa saada kuva
- * peittämään koko näyttö reunoja ja alalaitaa myöten (dynaaminen viewport),
- * ilman valkoisia reunoja. Tumma väri html:llä toimii fallbackina.
- */
+/* Etusivun fallback — itse tausta on CSS Home-reitillä. */
 html:has([data-scope="Layout"].home) {
   background-color: #1a1848;
 }
 
 html:has([data-scope="Layout"].home) body {
   background-color: transparent;
-}
-
-html:has([data-scope="Layout"].home) body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  background-image: url("/static/images/wallpaper.webp");
-  background-position: center center;
-  background-size: cover;
-  background-repeat: no-repeat;
 }
 
 /* iOS zooms focused fields under 16px — keep a hard floor. */

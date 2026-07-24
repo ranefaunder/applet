@@ -13,14 +13,13 @@ import { initAuthStore } from "./stores/userStore";
 import { initConfigStore } from "./stores/configStore";
 import { initI18nStore } from "./stores/i18nStore";
 import { initAppStore } from "./stores/appStore";
-import { initAppEditStore } from "./stores/appEditStore";
+import { initEditStore } from "./stores/editStore";
 import DevStores from "./components/headless/DevStores";
 import Home, { HomePath } from "./routes/Home";
-import Create, { CreatePath } from "./routes/Create";
 import MyApps, { MyAppsPath } from "./routes/MyApps";
 import Settings, { SettingsPath } from "./routes/Settings";
 import Login, { LoginPath } from "./routes/Login";
-import AppEdit, { AppEditPath } from "./routes/AppEdit";
+import Edit, { EditPath, EditSlugPath } from "./routes/Edit";
 import NotFound from "./routes/NotFound";
 import { spaRouterScope } from "/utils/app-url";
 
@@ -29,7 +28,7 @@ function initStores() {
   initAuthStore();
   initI18nStore();
   initAppStore();
-  initAppEditStore();
+  initEditStore();
 }
 
 if (isClient) {
@@ -58,12 +57,12 @@ export default function App() {
       >
         <div data-scope="App" ui-column>
           <${Router}>
-            <${Route} path=${CreatePath} component=${Create} />
             <${Route} path=${MyAppsPath} component=${withLayout(MyApps)} />
             <${Route} path=${HomePath} component=${withLayout(Home)} />
             <${Route} path=${SettingsPath} component=${withLayout(Settings)} />
             <${Route} path=${LoginPath} component=${withLayout(Login)} />
-            <${Route} path=${AppEditPath} component=${withLayout(AppEdit)} />
+            <${Route} path=${EditSlugPath} component=${withLayout(Edit)} />
+            <${Route} path=${EditPath} component=${withLayout(Edit)} />
             <${Route} default component=${withLayout(NotFound)} />
           <//>
         </div>
