@@ -3,7 +3,7 @@ import type { RoutePropsForPath } from "preact-iso";
 import { useEffect } from "preact/hooks";
 import { useRoute } from "preact-iso";
 import { t } from "/utils/i18n";
-import { appPageUrl, exploreUrl } from "/utils/app-url";
+import { appEditUrl, appPageUrl, exploreUrl } from "/utils/app-url";
 import { appIconSrc } from "/utils/app-icon";
 import { previewGradient, draftLetter } from "/utils/app-preview";
 import { isLoggedIn } from "/app/stores/userStore";
@@ -51,7 +51,6 @@ export default function StoreApp(_props: RoutePropsForPath<typeof StoreAppPath>)
   const iconSrc = appIconSrc(app?.iconId);
   const gradient = previewGradient(slug);
   const letter = draftLetter(app?.title ?? "?");
-  const addRemoveLabel = app?.installed ? t("Remove") : t("Add");
 
   const view = html`
     <div data-scope="StoreApp" ui-column>
@@ -98,18 +97,39 @@ export default function StoreApp(_props: RoutePropsForPath<typeof StoreAppPath>)
               </div>
 
               <div ui-row="gap-sm x-center wrap">
-                <button
-                  type="button"
-                  ui-button=${app.installed ? "tertiary" : "primary"}
-                  disabled=${busy}
-                  aria-busy=${busy}
-                  onClick=${() => void onAddRemove()}
-                >
-                  ${addRemoveLabel}
-                </button>
-                <a ui-button href=${appPageUrl(lang, app.slug)}>
-                  ${t("Try")}
-                </a>
+                ${app.installed
+                  ? html`
+                    <a ui-button="primary" href=${appPageUrl(lang, app.slug)}>
+                      ${t("Open")}
+                    </a>
+                    ${app.isOwner
+                      ? html`
+                        <a ui-button href=${appEditUrl(lang, app.slug)}>
+                          ${t("Edit")}
+                        </a>`
+                      : ""}
+                    <button
+                      type="button"
+                      ui-button
+                      disabled=${busy}
+                      aria-busy=${busy}
+                      onClick=${() => void onAddRemove()}
+                    >
+                      ${t("Remove")}
+                    </button>`
+                  : html`
+                    <button
+                      type="button"
+                      ui-button="primary"
+                      disabled=${busy}
+                      aria-busy=${busy}
+                      onClick=${() => void onAddRemove()}
+                    >
+                      ${t("Add")}
+                    </button>
+                    <a ui-button href=${appPageUrl(lang, app.slug)}>
+                      ${t("Try")}
+                    </a>`}
               </div>
 
               ${storeError.value

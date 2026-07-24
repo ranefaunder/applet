@@ -4,6 +4,7 @@ import type { AppDetail } from "/types/app-config-types";
 import { apiFetch } from "/utils/api.client";
 import { getLang } from "/utils/lang";
 import type { AppCategory } from "/utils/app-categories";
+import { apps, loadApps } from "/app/stores/appStore";
 
 export const exploreApps = signal<StoreAppCard[]>([]);
 export const exploreLoading = signal(false);
@@ -71,6 +72,7 @@ export async function loadStoreApp(slug: string): Promise<void> {
 export async function installStoreApp(slug: string): Promise<boolean> {
   if (storeBusy.value) return false;
   storeBusy.value = true;
+  storeError.value = null;
   try {
     const result = await apiFetch<{ slug: string; installed: boolean }>(
       `/api/${lang()}/app/install`,
@@ -81,11 +83,22 @@ export async function installStoreApp(slug: string): Promise<boolean> {
       return false;
     }
     if (storeApp.value?.slug === slug) {
-      storeApp.value = { ...storeApp.value, installed: true };
+      storeApp.value = {
+        ...storeApp.value,
+        installed: true,
+        installCount: storeApp.value.installCount + (storeApp.value.installed ? 0 : 1),
+      };
     }
     exploreApps.value = exploreApps.value.map((a) =>
-      a.slug === slug ? { ...a, installed: true, installCount: a.installCount + 1 } : a,
+      a.slug === slug
+        ? {
+            ...a,
+            installed: true,
+            installCount: a.installed ? a.installCount : a.installCount + 1,
+          }
+        : a,
     );
+    void loadApps();
     return true;
   } finally {
     storeBusy.value = false;
@@ -95,6 +108,7 @@ export async function installStoreApp(slug: string): Promise<boolean> {
 export async function uninstallStoreApp(slug: string): Promise<boolean> {
   if (storeBusy.value) return false;
   storeBusy.value = true;
+  storeError.value = null;
   try {
     const result = await apiFetch<{ slug: string; installed: boolean }>(
       `/api/${lang()}/app/uninstall`,
@@ -108,14 +122,22 @@ export async function uninstallStoreApp(slug: string): Promise<boolean> {
       storeApp.value = {
         ...storeApp.value,
         installed: false,
-        installCount: Math.max(0, storeApp.value.installCount - 1),
+        installCount: Math.max(
+          0,
+          storeApp.value.installCount - (storeApp.value.installed ? 1 : 0),
+        ),
       };
     }
     exploreApps.value = exploreApps.value.map((a) =>
       a.slug === slug
-        ? { ...a, installed: false, installCount: Math.max(0, a.installCount - 1) }
+        ? {
+            ...a,
+            installed: false,
+            installCount: Math.max(0, a.installCount - (a.installed ? 1 : 0)),
+          }
         : a,
     );
+    apps.value = apps.value.filter((a) => a.slug !== slug);
     return true;
   } finally {
     storeBusy.value = false;
@@ -136,6 +158,7 @@ export async function remixStoreApp(slug: string): Promise<AppDetail | null> {
       storeError.value = result.error.message ?? result.error.code;
       return null;
     }
+    void loadApps();
     return result.data.app;
   } finally {
     storeBusy.value = false;
