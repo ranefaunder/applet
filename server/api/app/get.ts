@@ -31,6 +31,8 @@ function buildAppDetail(
     canEdit: isOwner,
     isDraft: row.is_draft === 1,
     iconId: row.icon_id ?? null,
+    category: row.category ?? config.category ?? null,
+    tagline: row.tagline ?? config.tagline ?? null,
   };
 }
 

@@ -16,6 +16,21 @@ export const appConfigSchema = z.object({
    */
   title: z.string().min(1).max(80),
   description: z.string(),
+  /** Short App Store marketing line (~30 chars). Optional for older apps. */
+  tagline: z.string().max(80).optional(),
+  /** App Store category. Optional for older apps. */
+  category: z
+    .enum([
+      "Productivity",
+      "Health",
+      "Finance",
+      "Food",
+      "Games",
+      "Utilities",
+      "Lifestyle",
+      "Education",
+    ])
+    .optional(),
   /** @deprecated Launcher uses AI-generated icon files; kept for older configs. */
   emoji: z.string().max(8).optional(),
   /** Custom element -nimi, esim. "run-log". Pakollinen väliviiva. */
@@ -39,6 +54,8 @@ export type AppDetail = {
   isDraft: boolean;
   /** Launcher icon reference under /static/app-icons/ (e.g. "abc123.svg"; legacy ids map to .webp) */
   iconId: string | null;
+  category: string | null;
+  tagline: string | null;
 };
 
 export type AppEditRole = "user" | "assistant";

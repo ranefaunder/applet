@@ -7,7 +7,13 @@ import { t } from "/utils/i18n";
 import { appEditUrl, appPageUrl } from "/utils/app-url";
 import { appIconSrc } from "/utils/app-icon";
 import { previewGradient, draftLetter } from "/utils/app-preview";
-import { deleteApp } from "/app/stores/appStore";
+import { deleteApp, uninstallFromLibrary } from "/app/stores/appStore";
+import { remixStoreApp } from "/app/stores/exploreStore";
+import {
+  codeDraft,
+  editApp,
+  editMessages,
+} from "/app/stores/editStore";
 
 type Props = {
   app: AppSummary;
@@ -23,7 +29,7 @@ const SQUIRCLE_MASK = `url("data:image/svg+xml,${encodeURIComponent(
 )}")`;
 
 export default function AppIcon({ app }: Props) {
-  const { path } = useLocation();
+  const { path, route } = useLocation();
   const lang = getLang(path ?? "") ?? "en";
   const iconSrc = appIconSrc(app.iconId);
   const gradient = previewGradient(app.slug);
@@ -33,6 +39,7 @@ export default function AppIcon({ app }: Props) {
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<number | null>(null);
   const didLongPress = useRef(false);
+  const owned = app.owned !== false;
 
   function isMenuOpen() {
     return menuRef.current?.matches(":popover-open") ?? false;
@@ -140,6 +147,23 @@ export default function AppIcon({ app }: Props) {
     await deleteApp(app.slug);
   }
 
+  async function handleUninstall(e: Event) {
+    e.preventDefault();
+    closeMenu();
+    await uninstallFromLibrary(app.slug);
+  }
+
+  async function handleRemix(e: Event) {
+    e.preventDefault();
+    closeMenu();
+    const cloned = await remixStoreApp(app.slug);
+    if (!cloned) return;
+    editApp.value = cloned;
+    codeDraft.value = cloned.config.code;
+    editMessages.value = [];
+    route(appEditUrl(lang, cloned.slug), true);
+  }
+
   const view = html`
     <div
       class="app-icon-root"
@@ -171,15 +195,27 @@ export default function AppIcon({ app }: Props) {
       </a>
 
       <div id=${menuId} ref=${menuRef} popover="manual" role="menu">
-        <a role="menuitem" href=${appEditUrl(lang, app.slug)} onClick=${() => closeMenu()}>
-          <i ui-icon="pencil" aria-hidden="true"></i>
-          ${t("Edit")}
-        </a>
-        <hr />
-        <button type="button" role="menuitem" class="danger" onClick=${(e: Event) => void handleDelete(e)}>
-          <i ui-icon="trash" aria-hidden="true"></i>
-          ${t("Delete")}
-        </button>
+        ${owned
+          ? html`
+            <a role="menuitem" href=${appEditUrl(lang, app.slug)} onClick=${() => closeMenu()}>
+              <i ui-icon="pencil" aria-hidden="true"></i>
+              ${t("Edit")}
+            </a>
+            <hr />
+            <button type="button" role="menuitem" class="danger" onClick=${(e: Event) => void handleDelete(e)}>
+              <i ui-icon="trash" aria-hidden="true"></i>
+              ${t("Delete")}
+            </button>`
+          : html`
+            <button type="button" role="menuitem" onClick=${(e: Event) => void handleRemix(e)}>
+              <i ui-icon="git-fork" aria-hidden="true"></i>
+              ${t("Remix")}
+            </button>
+            <hr />
+            <button type="button" role="menuitem" class="danger" onClick=${(e: Event) => void handleUninstall(e)}>
+              <i ui-icon="circle-minus" aria-hidden="true"></i>
+              ${t("Remove from library")}
+            </button>`}
       </div>
     </div>
   `;

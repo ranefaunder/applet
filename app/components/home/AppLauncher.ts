@@ -150,7 +150,7 @@ export default function AppLauncher() {
 
   const shortcuts = html`
     <div class="shortcuts">
-      <a class="shortcut explore" href=${`/${lang}/`}>
+      <a class="shortcut explore" href=${`/${lang}/explore`}>
         <span class="shortcut-badge">${compassSvg}</span>
         <span class="shortcut-text">
           <span class="shortcut-title">${t("Explorer Apps")}</span>

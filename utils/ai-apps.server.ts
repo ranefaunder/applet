@@ -4,9 +4,12 @@ import { applyReplacements } from "/utils/code-patch.server";
 import { appConfigSchema, type AppConfig, type AppEditMessage } from "/types/app-config-types";
 import type { Language } from "/types/i18n-types";
 import { AVAILABLE_LANGUAGES } from "/i18n/languages";
+import { APP_CATEGORIES, normalizeAppCategory } from "/utils/app-categories";
 
 /** Home-screen label hard limit (must fit under the icon). */
 export const APP_TITLE_MAX_LENGTH = 12;
+/** App Store tagline hard limit. */
+export const APP_TAGLINE_MAX_LENGTH = 40;
 
 function clampAppTitle(title: string): string {
   const trimmed = title.trim().replace(/\s+/g, " ");
@@ -16,12 +19,26 @@ function clampAppTitle(title: string): string {
     : trimmed.slice(0, APP_TITLE_MAX_LENGTH).trimEnd() || "App";
 }
 
+function clampTagline(tagline: string): string {
+  const trimmed = tagline.trim().replace(/\s+/g, " ");
+  if (!trimmed) return "";
+  return trimmed.length <= APP_TAGLINE_MAX_LENGTH
+    ? trimmed
+    : trimmed.slice(0, APP_TAGLINE_MAX_LENGTH).trimEnd();
+}
+
 /** Accept a slightly longer AI title, then clamp — so over-long replies don't fail generation. */
 const aiTitleSchema = z.string().min(1).max(80).transform((t) => clampAppTitle(t));
+const aiTaglineSchema = z.string().min(1).max(80).transform((t) => clampTagline(t));
+const aiCategorySchema = z.enum(APP_CATEGORIES).or(z.string()).transform((c) => normalizeAppCategory(c));
 
 const aiAppSchema = appConfigSchema
-  .omit({ version: true, status: true, prompt: true, emoji: true })
-  .extend({ title: aiTitleSchema });
+  .omit({ version: true, status: true, prompt: true, emoji: true, category: true, tagline: true })
+  .extend({
+    title: aiTitleSchema,
+    tagline: aiTaglineSchema,
+    category: aiCategorySchema,
+  });
 
 /** Tools the edit orchestrator can run after intent classification. */
 export const EDIT_TOOLS = ["updateCode", "rename", "regenerateIcon"] as const;
@@ -43,6 +60,8 @@ const aiRenameSchema = z.object({
   summary: z.string().min(1),
   title: aiTitleSchema,
   description: z.string().min(1).max(500),
+  tagline: aiTaglineSchema,
+  category: aiCategorySchema,
 });
 
 const codeReplacementSchema = z.object({
@@ -245,6 +264,8 @@ export async function generateAppConfig(
 Return one JSON object with:
 - title: short app name, MAXIMUM 12 characters (including spaces). Must fit under a phone home-screen icon — prefer 1–2 words (e.g. "Budget", "Ostoslista", "Run Log"). Never use the raw user prompt if it is longer than 12 chars; invent a short label instead.
 - description: 1-2 sentences describing what the app does
+- tagline: short App Store marketing line in ${langName}, MAXIMUM 40 characters (e.g. "Track spending in seconds")
+- category: exactly one of: ${APP_CATEGORIES.join(", ")}
 - tagName: valid custom element name, lowercase with at least one hyphen (e.g. "run-log", "wine-journal")
 - code: complete JavaScript that registers the custom element
 
@@ -269,6 +290,8 @@ ${designGuidelines(langName)}`;
       prompt,
       ...generated,
       title: generated.title,
+      tagline: generated.tagline || undefined,
+      category: generated.category,
     },
     costUsd,
     modelUsed,
@@ -373,6 +396,8 @@ export async function generateAppName(opts: {
 }): Promise<{
   title: string;
   description: string;
+  tagline: string;
+  category: string;
   summary: string;
   costUsd: number | null;
   modelUsed: string | null;
@@ -381,17 +406,21 @@ export async function generateAppName(opts: {
   const { current, instruction, language, model } = opts;
   const langName = AVAILABLE_LANGUAGES[language]?.name ?? "English";
 
-  const systemPrompt = `You name Abblet apps for a phone home screen.
+  const systemPrompt = `You name Abblet apps for a phone home screen and App Store listing.
 
 Return JSON:
 - title: short app name, MAXIMUM 12 characters (including spaces). Prefer 1–2 words. Must fit under an icon.
 - description: 1-2 sentences in ${langName} describing what the app does
+- tagline: short App Store marketing line in ${langName}, MAXIMUM 40 characters
+- category: exactly one of: ${APP_CATEGORIES.join(", ")}
 - summary: 1 short sentence in ${langName} for the chat (what you renamed it to)
 
 Keep the meaning of the existing app unless the user asks otherwise.`;
 
   const userPrompt = `Current title: ${current.title}
 Current description: ${current.description}
+Current tagline: ${current.tagline ?? "(none)"}
+Current category: ${current.category ?? "(none)"}
 
 User request:
 ${instruction}`;
@@ -407,6 +436,8 @@ ${instruction}`;
   return {
     title: data.title,
     description: data.description.trim(),
+    tagline: data.tagline,
+    category: data.category,
     summary: data.summary.trim(),
     costUsd,
     modelUsed,

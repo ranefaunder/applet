@@ -82,6 +82,8 @@ export default {
         canEdit: true,
         isDraft: updated.is_draft === 1,
         iconId: updated.icon_id ?? null,
+        category: updated.category ?? config.category ?? null,
+        tagline: updated.tagline ?? config.tagline ?? null,
       };
 
       return apiSuccess({

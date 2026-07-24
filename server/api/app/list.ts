@@ -1,7 +1,7 @@
 import type { BunRequest } from "bun";
 import { getAuthenticatedUser } from "/utils/auth.server";
 import { apiSuccess } from "/utils/api.server";
-import { dbListUserApps } from "/server/database/queries/apps";
+import { dbListLibraryApps } from "/server/database/queries/apps";
 
 export default {
   async GET(req: BunRequest) {
@@ -10,6 +10,6 @@ export default {
       return apiSuccess({ data: { apps: [] } });
     }
 
-    return apiSuccess({ data: { apps: dbListUserApps(user.id) } });
+    return apiSuccess({ data: { apps: dbListLibraryApps(user.id) } });
   },
 };

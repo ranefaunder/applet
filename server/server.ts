@@ -24,6 +24,13 @@ import appEditHistory from "./api/app/edit-history";
 import appList from "./api/app/list";
 import appRegenerateIcon from "./api/app/regenerate-icon";
 import appDelete from "./api/app/delete";
+import appExplore from "./api/app/explore";
+import appStoreGet from "./api/app/store-get";
+import appInstall from "./api/app/install";
+import appUninstall from "./api/app/uninstall";
+import appPublish from "./api/app/publish";
+import appUnpublish from "./api/app/unpublish";
+import appRemix from "./api/app/remix";
 import meta from "./api/meta";
 
 await initDb();
@@ -46,6 +53,13 @@ const server = Bun.serve({
     "/api/:lang/app/regenerate-icon": appRegenerateIcon,
     "/api/:lang/app/delete": appDelete,
     "/api/:lang/app/list": appList,
+    "/api/:lang/app/explore": appExplore,
+    "/api/:lang/app/store-get": appStoreGet,
+    "/api/:lang/app/install": appInstall,
+    "/api/:lang/app/uninstall": appUninstall,
+    "/api/:lang/app/publish": appPublish,
+    "/api/:lang/app/unpublish": appUnpublish,
+    "/api/:lang/app/remix": appRemix,
     "/api/:lang/user/me": userMe,
     "/api/:lang/user/marketing": userMarketing,
     "/api/:lang/auth/logout": authLogout,

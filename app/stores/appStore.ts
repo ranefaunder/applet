@@ -38,6 +38,27 @@ export async function deleteApp(slug: string): Promise<boolean> {
   return true;
 }
 
+/** Remove an app from the home library (owned or not). */
+export async function uninstallFromLibrary(slug: string): Promise<boolean> {
+  const lang = getLang(window.location.pathname) ?? "en";
+  const previous = apps.value;
+  apps.value = previous.filter((app) => app.slug !== slug);
+
+  const result = await apiFetch<{ slug: string; installed: boolean }>(
+    `/api/${lang}/app/uninstall`,
+    {
+      method: "POST",
+      body: JSON.stringify({ slug }),
+    },
+  );
+
+  if (!result.success) {
+    apps.value = previous;
+    return false;
+  }
+  return true;
+}
+
 export function clearApps(): void {
   apps.value = [];
 }

@@ -8,7 +8,7 @@ import { canViewApp } from "/utils/app-access.server";
 import { getLang } from "/utils/lang";
 import { resolveStaticRootFromUrl } from "/utils/static.server";
 import { translations } from "/i18n/translations";
-import { dbListUserApps, dbGetAppBySlug } from "/server/database/queries/apps";
+import { dbListLibraryApps, dbGetAppBySlug } from "/server/database/queries/apps";
 import { parseAppConfig } from "/types/app-config-types";
 
 export function createSsrContext(req: BunRequest): SsrContext {
@@ -30,9 +30,12 @@ function getInitialConfig(req: BunRequest): InitialConfig {
 
 function getInitialApp(req: BunRequest, user: AuthenticatedUser | null): AppDetail | null {
   const parts = new URL(req.url).pathname.split("/").filter(Boolean);
-  if (parts[1] !== "app" || !parts[2]) return null;
+  // /:lang/edit/:slug or legacy /:lang/app/:slug/edit
+  let slug: string | null = null;
+  if (parts[1] === "edit" && parts[2]) slug = parts[2];
+  else if (parts[1] === "app" && parts[2]) slug = parts[2];
+  if (!slug) return null;
 
-  const slug = parts[2];
   const row = dbGetAppBySlug(slug);
   if (!row) return null;
 
@@ -52,6 +55,8 @@ function getInitialApp(req: BunRequest, user: AuthenticatedUser | null): AppDeta
     canEdit: user?.id === row.owner_id,
     isDraft: row.is_draft === 1,
     iconId: row.icon_id ?? null,
+    category: row.category ?? config.category ?? null,
+    tagline: row.tagline ?? config.tagline ?? null,
   };
 }
 
@@ -63,7 +68,7 @@ function getInitialApps(req: BunRequest, initialUser: AuthenticatedUser | null) 
 
   // Home launcher, edit list, and legacy /apps need the app list.
   if (segment === undefined || segment === "apps" || segment === "edit") {
-    return dbListUserApps(initialUser.id);
+    return dbListLibraryApps(initialUser.id);
   }
   return undefined;
 }

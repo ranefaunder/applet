@@ -34,6 +34,8 @@ import {
   sendChatMessage,
   saveCode,
   regenerateIcon,
+  editPublishing,
+  setAppPublished,
 } from "/app/stores/editStore";
 import {
   EDIT_AI_MODELS,
@@ -91,7 +93,9 @@ export default function Edit(_props: EditRouteProps) {
   const loading = editLoading.value;
   const creating = isNew || (app != null && isDraftConfig(app.config));
   const regeneratingIcon = editRegeneratingIcon.value;
+  const publishing = editPublishing.value;
   const iconSrc = appIconSrc(app?.iconId);
+  const isPublished = app?.visibility === "public";
 
   async function handleDelete() {
     if (!app || !slug || deleting.value) return;
@@ -103,10 +107,30 @@ export default function Edit(_props: EditRouteProps) {
     if (success) route(`/${lang}/`, true);
   }
 
+  async function handlePublishToggle() {
+    if (!app || !slug || creating || publishing) return;
+    closeTopbarMenu();
+    await setAppPublished(slug, !isPublished);
+  }
+
+  function closeTopbarMenu() {
+    const menu = document.getElementById("edit-topbar-menu") as HTMLElement & {
+      hidePopover?: () => void;
+    } | null;
+    try {
+      menu?.hidePopover?.();
+    } catch {
+      // ignore
+    }
+  }
+
+  const showTools = Boolean(app?.canEdit && slug);
+  const showReadyTools = Boolean(app?.canEdit && !creating && slug);
+
   const view = html`
     <div data-scope="Edit" ui-column>
-      <header class="topbar" ui-row="x-between y-center gap-md" ui-padding="inline-md block-sm">
-        <div class="topbar-title" ui-row="y-center gap-sm">
+      <header class="topbar" ui-row="x-between y-center gap-sm" ui-padding="inline-sm block-sm">
+        <div class="topbar-lead" ui-row="y-center gap-xs">
           <a
             href=${`/${lang}/`}
             ui-button="tertiary square sm"
@@ -115,67 +139,108 @@ export default function Edit(_props: EditRouteProps) {
           ></a>
           ${isNew
             ? html`
-              <span class="app-chip-title">${t("New App")}</span>
-              <span class="badge">${t("Building")}</span>`
+              <div class="topbar-identity" ui-row="y-center gap-sm">
+                <span class="app-chip-title">${t("New App")}</span>
+                <span class="badge">${t("Building")}</span>
+              </div>`
             : app
               ? html`
-                ${iconSrc
-                  ? html`<img class="app-chip-icon" src=${iconSrc} alt="" width="28" height="28" />`
-                  : html`
-                    <span
-                      class="app-chip-fallback"
-                      style=${`background: ${previewGradient(slug)}`}
-                      aria-hidden="true"
-                    >${draftLetter(app.title)}</span>`}
-                <span class="app-chip-title">${app.title}</span>
-                ${creating ? html`<span class="badge">${t("Building")}</span>` : ""}`
+                <div class="topbar-identity" ui-row="y-center gap-sm">
+                  ${iconSrc
+                    ? html`<img class="app-chip-icon" src=${iconSrc} alt="" width="28" height="28" />`
+                    : html`
+                      <span
+                        class="app-chip-fallback"
+                        style=${`background: ${previewGradient(slug)}`}
+                        aria-hidden="true"
+                      >${draftLetter(app.title)}</span>`}
+                  <div class="topbar-copy" ui-column>
+                    <span class="app-chip-title">${app.title}</span>
+                    ${creating
+                      ? html`<span class="topbar-meta">${t("Building")}</span>`
+                      : isPublished
+                        ? html`<span class="topbar-meta published">${t("Published")}</span>`
+                        : ""}
+                  </div>
+                </div>`
               : html`<span class="app-chip-title muted">${t("Editor")}</span>`}
         </div>
 
-        <div ui-row="y-center gap-xs">
-          ${app?.canEdit && !creating && slug
-            ? html`
-              <button
-                type="button"
-                ui-button="tertiary square sm"
-                ui-icon=${editMode.value === "chat" ? "code" : "message-circle"}
-                title=${editMode.value === "chat" ? t("Code") : t("Chat")}
-                aria-label=${editMode.value === "chat" ? t("Code") : t("Chat")}
-                onClick=${() => {
-                  editMode.value = editMode.value === "chat" ? "code" : "chat";
-                }}
-              ></button>
-              <button
-                type="button"
-                ui-button="tertiary square sm"
-                ui-icon="image"
-                title=${t("Generate new icon")}
-                aria-label=${t("Generate new icon")}
-                disabled=${regeneratingIcon}
-                aria-busy=${regeneratingIcon}
-                onClick=${() => void regenerateIcon(slug)}
-              ></button>`
-            : ""}
-          ${app?.canEdit && slug
-            ? html`
-              <button
-                type="button"
-                ui-button="tertiary square sm"
-                ui-icon="trash"
-                aria-label=${t("Delete")}
-                disabled=${deleting.value}
-                aria-busy=${deleting.value}
-                onClick=${() => void handleDelete()}
-              ></button>`
-            : ""}
+        <div class="topbar-actions" ui-row="y-center gap-xs">
           ${app && !creating && slug
             ? html`
-              <a ui-button="sm" href=${appPageUrl(lang, slug)} target="_blank" rel="noopener">
-                ${t("Open app")}
+              <a class="open-btn" ui-button="sm" href=${appPageUrl(lang, slug)} target="_blank" rel="noopener">
+                ${t("Open")}
               </a>`
             : app && slug
-              ? html`<button type="button" ui-button="sm" disabled>${t("Open app")}</button>`
+              ? html`<button type="button" class="open-btn" ui-button="sm" disabled>${t("Open")}</button>`
               : ""}
+          ${showTools
+            ? html`
+              <div class="topbar-menu" ui-menu="bottom-left">
+                <button
+                  type="button"
+                  ui-button="tertiary square sm"
+                  ui-icon="dots-three-vertical"
+                  aria-label=${t("More")}
+                  popovertarget="edit-topbar-menu"
+                ></button>
+                <div id="edit-topbar-menu" popover="auto" role="menu">
+                  ${showReadyTools
+                    ? html`
+                      <button
+                        type="button"
+                        role="menuitem"
+                        disabled=${publishing}
+                        onClick=${() => void handlePublishToggle()}
+                      >
+                        <i ui-icon=${isPublished ? "prohibit" : "share"} aria-hidden="true"></i>
+                        ${isPublished ? t("Unpublish") : t("Publish")}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick=${() => {
+                          closeTopbarMenu();
+                          editMode.value = editMode.value === "chat" ? "code" : "chat";
+                        }}
+                      >
+                        <i
+                          ui-icon=${editMode.value === "chat" ? "code" : "message-circle"}
+                          aria-hidden="true"
+                        ></i>
+                        ${editMode.value === "chat" ? t("Code") : t("Chat")}
+                      </button>
+                      <button
+                        type="button"
+                        role="menuitem"
+                        disabled=${regeneratingIcon}
+                        onClick=${() => {
+                          closeTopbarMenu();
+                          void regenerateIcon(slug);
+                        }}
+                      >
+                        <i ui-icon="image" aria-hidden="true"></i>
+                        ${t("Generate new icon")}
+                      </button>
+                      <hr />`
+                    : ""}
+                  <button
+                    type="button"
+                    role="menuitem"
+                    class="danger"
+                    disabled=${deleting.value}
+                    onClick=${() => {
+                      closeTopbarMenu();
+                      void handleDelete();
+                    }}
+                  >
+                    <i ui-icon="trash" aria-hidden="true"></i>
+                    ${t("Delete")}
+                  </button>
+                </div>
+              </div>`
+            : ""}
         </div>
       </header>
 
@@ -697,9 +762,31 @@ function style() {
         z-index: 2;
       }
 
-      .topbar-title {
+      .topbar-lead {
         min-width: 0;
         flex: 1;
+      }
+
+      .topbar-identity {
+        min-width: 0;
+        flex: 1;
+      }
+
+      .topbar-copy {
+        min-width: 0;
+        gap: 0.05rem;
+      }
+
+      .topbar-actions {
+        flex: none;
+      }
+
+      .topbar-menu {
+        flex: none;
+      }
+
+      .open-btn {
+        flex: none;
       }
 
       .app-chip-icon,
@@ -728,10 +815,24 @@ function style() {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        line-height: 1.15;
       }
 
       .app-chip-title.muted {
         color: var(--neutral-500);
+      }
+
+      .topbar-meta {
+        font-size: 0.625rem;
+        font-weight: 650;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--neutral-500);
+        line-height: 1.2;
+      }
+
+      .topbar-meta.published {
+        color: var(--primary-600, #3b5bdb);
       }
 
       .badge {
@@ -745,6 +846,10 @@ function style() {
         font-weight: 700;
         letter-spacing: 0.04em;
         text-transform: uppercase;
+      }
+
+      #edit-topbar-menu [role="menuitem"].danger {
+        color: var(--danger, #c00);
       }
 
       .state {

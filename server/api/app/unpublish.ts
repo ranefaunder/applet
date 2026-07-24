@@ -1,11 +1,8 @@
 import type { BunRequest } from "bun";
 import { withAuth } from "/utils/auth.server";
 import { apiError, apiSuccess } from "/utils/api.server";
-import { dbGetAppBySlug, dbUpdateApp } from "/server/database/queries/apps";
-import { isDraftConfig, parseAppConfig, type AppConfig, type AppDetail } from "/types/app-config-types";
-import type { Language } from "/types/i18n-types";
-import { getLang } from "/utils/lang";
-import { t } from "/utils/i18n";
+import { dbGetAppBySlug, dbUnpublishApp } from "/server/database/queries/apps";
+import { parseAppConfig, type AppDetail } from "/types/app-config-types";
 
 export default {
   async POST(req: BunRequest) {
@@ -17,35 +14,24 @@ export default {
         return apiError({ code: "INVALID_JSON" });
       }
 
-      const b = body as { slug?: string; code?: string };
-      const slug = typeof b.slug === "string" ? b.slug.trim() : "";
-      const code = typeof b.code === "string" ? b.code : "";
-      const language = (getLang(req.url) ?? "en") as Language;
-
+      const slug =
+        typeof (body as { slug?: string }).slug === "string"
+          ? (body as { slug: string }).slug.trim()
+          : "";
       if (!slug) return apiError({ code: "SLUG_REQUIRED" });
-      if (!code.trim()) return apiError({ code: "CODE_REQUIRED" });
 
       const row = dbGetAppBySlug(slug);
       if (!row) return apiError({ code: "NOT_FOUND", status: 404 });
       if (row.owner_id !== user.id) return apiError({ code: "FORBIDDEN", status: 403 });
 
-      const current = parseAppConfig(row.config_json);
-      if (!current || isDraftConfig(current)) {
-        return apiError({ code: "APP_NOT_READY", status: 409 });
+      if (!dbUnpublishApp(row.id, user.id)) {
+        return apiError({ code: "NOT_FOUND", status: 404 });
       }
-
-      if (!code.includes(current.tagName)) {
-        return apiError({
-          code: "INVALID_CODE",
-          message: t("Code must still register <$tag>.", { tag: current.tagName }, language),
-        });
-      }
-
-      const config: AppConfig = { ...current, status: "ready", code };
-
-      dbUpdateApp(row.id, { configJson: JSON.stringify(config) });
 
       const updated = dbGetAppBySlug(slug)!;
+      const config = parseAppConfig(updated.config_json);
+      if (!config) return apiError({ code: "NOT_FOUND", status: 404 });
+
       const detail: AppDetail = {
         id: updated.id,
         slug: updated.slug,

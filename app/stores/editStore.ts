@@ -27,6 +27,8 @@ export const editMode = signal<EditMode>("chat");
 export const codeDraft = signal<string>("");
 /** Persists across sends and page loads — never reset after send. */
 export const editAiModel = signal<EditAiModelKey>(DEFAULT_EDIT_AI_MODEL);
+export const editRegeneratingIcon = signal(false);
+export const editPublishing = signal(false);
 
 export function setEditAiModel(key: EditAiModelKey): void {
   editAiModel.value = key;
@@ -54,6 +56,7 @@ function resetEditRequestFlags(): void {
   editSending.value = false;
   editSavingCode.value = false;
   editRegeneratingIcon.value = false;
+  editPublishing.value = false;
   editStatusText.value = null;
   editStatusSteps.value = [];
   editStatusIndex.value = 0;
@@ -353,8 +356,6 @@ export async function saveCode(slug: string): Promise<void> {
   }
 }
 
-export const editRegeneratingIcon = signal(false);
-
 /** Regenerate the launcher icon on explicit user request. */
 export async function regenerateIcon(slug: string): Promise<boolean> {
   if (editRegeneratingIcon.value) return false;
@@ -377,6 +378,28 @@ export async function regenerateIcon(slug: string): Promise<boolean> {
     return true;
   } finally {
     editRegeneratingIcon.value = false;
+  }
+}
+
+/** Publish (or unpublish) the current app to Explore. */
+export async function setAppPublished(slug: string, publish: boolean): Promise<boolean> {
+  if (editPublishing.value) return false;
+  editError.value = null;
+  editPublishing.value = true;
+  try {
+    const endpoint = publish ? "publish" : "unpublish";
+    const result = await apiFetch<{ app: AppDetail }>(`/api/${lang()}/app/${endpoint}`, {
+      method: "POST",
+      body: JSON.stringify({ slug }),
+    });
+    if (!result.success) {
+      editError.value = result.error.message ?? result.error.code;
+      return false;
+    }
+    editApp.value = result.data.app;
+    return true;
+  } finally {
+    editPublishing.value = false;
   }
 }
 

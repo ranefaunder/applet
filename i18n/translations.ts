@@ -39,6 +39,92 @@ export const translations = {
   "Discover apps made by others": {
     fi: "Löydä muiden tekemiä appeja",
   },
+  "Explore": {
+    fi: "Selaa",
+  },
+  "Search apps": {
+    fi: "Hae appeja",
+  },
+  "Categories": {
+    fi: "Kategoriat",
+  },
+  "All": {
+    fi: "Kaikki",
+  },
+  "Featured": {
+    fi: "Nostot",
+  },
+  "New & Noteworthy": {
+    fi: "Uudet & kiinnostavat",
+  },
+  "Results": {
+    fi: "Tulokset",
+  },
+  "No apps in Explore yet": {
+    fi: "Exploren appit puuttuvat vielä",
+  },
+  "Published apps from the community will show up here.": {
+    fi: "Yhteisön julkaisemat appit näkyvät täällä.",
+  },
+  "App": {
+    fi: "Appi",
+  },
+  "Get": {
+    fi: "Hae",
+  },
+  "Add": {
+    fi: "Lisää",
+  },
+  "Remove": {
+    fi: "Poista",
+  },
+  "Yours": {
+    fi: "Sinun",
+  },
+  "Remix": {
+    fi: "Remix",
+  },
+  "Try": {
+    fi: "Kokeile",
+  },
+  "Gets": {
+    fi: "Haut",
+  },
+  "Adds": {
+    fi: "Lisäykset",
+  },
+  "Remixes": {
+    fi: "Remixit",
+  },
+  "Category": {
+    fi: "Kategoria",
+  },
+  "About": {
+    fi: "Tietoja",
+  },
+  "By $name": {
+    fi: "Tekijä: $name",
+  },
+  "Publish": {
+    fi: "Julkaise",
+  },
+  "Published": {
+    fi: "Julkaistu",
+  },
+  "Unpublish": {
+    fi: "Poista julkaisu",
+  },
+  "Remove from library": {
+    fi: "Poista kirjastosta",
+  },
+  "Productivity": { fi: "Tuottavuus" },
+  "Health": { fi: "Terveys" },
+  "Finance": { fi: "Raha" },
+  "Food": { fi: "Ruoka" },
+  "Games": { fi: "Pelit" },
+  "Utilities": { fi: "Apuohjelmat" },
+  "Lifestyle": { fi: "Elämäntapa" },
+  "Education": { fi: "Oppiminen" },
   "Create New App": {
     fi: "Luo uusi app",
   },
@@ -195,13 +281,14 @@ export const translations = {
   "AI is building your app.": { fi: "Tekoäly rakentaa appiasi." },
   "Fill in the required fields.": { fi: "Täytä pakolliset kentät." },
   "Add entry": { fi: "Lisää merkintä" },
-  "Add": { fi: "Lisää" },
   "Delete entry": { fi: "Poista merkintä" },
   "Delete": { fi: "Poista" },
   "Deleting…": { fi: "Poistetaan…" },
   "App not found": { fi: "Appia ei löydy" },
   "Could not save entry. Try again.": { fi: "Merkinnän tallennus epäonnistui. Yritä uudelleen." },
   "Open app": { fi: "Avaa app" },
+  "Open": { fi: "Avaa" },
+  "More": { fi: "Lisää" },
   "Close": { fi: "Sulje" },
   "Edit": { fi: "Muokkaa" },
   "Edit $title": { fi: "Muokkaa: $title" },

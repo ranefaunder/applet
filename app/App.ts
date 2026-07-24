@@ -20,6 +20,8 @@ import MyApps, { MyAppsPath } from "./routes/MyApps";
 import Settings, { SettingsPath } from "./routes/Settings";
 import Login, { LoginPath } from "./routes/Login";
 import Edit, { EditPath, EditSlugPath } from "./routes/Edit";
+import Explore, { ExplorePath } from "./routes/Explore";
+import StoreApp, { StoreAppPath } from "./routes/StoreApp";
 import NotFound from "./routes/NotFound";
 import { spaRouterScope } from "/utils/app-url";
 
@@ -59,6 +61,8 @@ export default function App() {
           <${Router}>
             <${Route} path=${MyAppsPath} component=${withLayout(MyApps)} />
             <${Route} path=${HomePath} component=${withLayout(Home)} />
+            <${Route} path=${ExplorePath} component=${withLayout(Explore)} />
+            <${Route} path=${StoreAppPath} component=${withLayout(StoreApp)} />
             <${Route} path=${SettingsPath} component=${withLayout(Settings)} />
             <${Route} path=${LoginPath} component=${withLayout(Login)} />
             <${Route} path=${EditSlugPath} component=${withLayout(Edit)} />

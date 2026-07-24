@@ -10,6 +10,14 @@ export function appEditUrl(lang: string, slug?: string): string {
   return slug ? `/${lang}/edit/${slug}` : `/${lang}/edit`;
 }
 
+export function exploreUrl(lang: string): string {
+  return `/${lang}/explore`;
+}
+
+export function storeAppUrl(lang: string, slug: string): string {
+  return `/${lang}/store/${slug}`;
+}
+
 /**
  * SPA router scope. Site pages under /{lang}/ are handled client-side, plus the
  * app edit views (/{lang}/edit and /{lang}/edit/{slug}). The bare app run page

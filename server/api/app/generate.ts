@@ -91,6 +91,8 @@ export default {
         slug,
         configJson: JSON.stringify(generated.config),
         isDraft: false,
+        category: generated.config.category ?? null,
+        tagline: generated.config.tagline ?? null,
       });
 
       const iconResult = await generateAppIcon({
@@ -159,6 +161,8 @@ export default {
         canEdit: true,
         isDraft: false,
         iconId: row.icon_id ?? null,
+        category: row.category ?? generated.config.category ?? null,
+        tagline: row.tagline ?? generated.config.tagline ?? null,
       };
 
       return apiSuccess({

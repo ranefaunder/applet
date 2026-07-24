@@ -64,6 +64,8 @@ function toDetail(
     canEdit: true,
     isDraft: row.is_draft === 1,
     iconId: row.icon_id ?? null,
+    category: row.category ?? config.category ?? null,
+    tagline: row.tagline ?? config.tagline ?? null,
   };
 }
 
@@ -367,6 +369,8 @@ async function runEditTurn(opts: {
         ...nextConfig,
         title: renamed.title,
         description: renamed.description,
+        tagline: renamed.tagline || undefined,
+        category: renamed.category as AppConfig["category"],
       };
       costUsd = addCost(costUsd, renamed.costUsd);
       modelUsed = renamed.modelUsed ?? modelUsed;
@@ -427,6 +431,8 @@ async function runEditTurn(opts: {
     nextConfig.code !== current.code ||
     nextConfig.title !== current.title ||
     nextConfig.description !== current.description ||
+    nextConfig.tagline !== current.tagline ||
+    nextConfig.category !== current.category ||
     Boolean(iconId);
 
   if (configChanged) {
@@ -435,6 +441,8 @@ async function runEditTurn(opts: {
       description: nextConfig.description,
       configJson: JSON.stringify(nextConfig),
       isDraft: creating ? false : undefined,
+      category: nextConfig.category ?? null,
+      tagline: nextConfig.tagline ?? null,
       ...(iconId ? { iconId } : {}),
     });
   }
